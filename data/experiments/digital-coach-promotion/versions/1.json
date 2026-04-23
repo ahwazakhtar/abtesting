@@ -1,0 +1,41 @@
+{
+  "number": 1,
+  "createdAt": "2025-09-15T10:00:00.000Z",
+  "triggerKind": "initial",
+  "triggerText": "Initial concept note (v1): A/B test of standalone Digital Coach vs DC bundled with human coaches, ~200 teachers in Islamabad.",
+  "summary": "Initial draft of the Phase 1.5 A/B test: two arms (DC alone vs DC + human coach), ~200 teachers across 25 schools in Islamabad, two-stage cluster sampling stratified by urban/rural.",
+  "stages": [
+    {
+      "id": "hypothesis",
+      "content": "Bundling human coaches with the Digital Coach (DC) is cost-justifiable for government implementation partners because the human coach materially increases take-up, weekly retention, and the share of DC feedback that teachers actually implement, relative to standalone DC.\n\nMechanism: DC delivers structured FICO-aligned feedback at scale, but adoption in low-trust / low-familiarity contexts is fragile. A human coach provides accountability (personalized outreach via WhatsApp, principal directives reinforced in person) and translates DC outputs into actionable next steps."
+    },
+    {
+      "id": "research_questions",
+      "content": "**Take-up:** What is the take-up of standalone DC vs the human-coach-augmented DC arm? Both arms receive platform messages and principal directives; the human-coach arm additionally receives personalized outreach (e.g. WhatsApp).\n\n**Retention:** What is weekly retention in each arm?\n\n**Effectiveness:** What share of feedback delivered in initial DC sessions is implemented in subsequent sessions? Requires a minimum of 2 DC sessions per teacher to be observable, and this 2-session minimum is communicated to teachers up-front."
+    },
+    {
+      "id": "design",
+      "content": "**Two-arm A/B test** at the teacher level, with cluster sampling at the school level.\n\n| Arm | Description | Target n (analytical) |\n| --- | --- | --- |\n| A | DC + human coach (personalized outreach + in-person reinforcement) | 100 teachers |\n| B | DC standalone (platform messages + principal directives only) | 100 teachers |\n\n**Sampling frame.** Islamabad has 6 sectors (Urban 1, Urban 2, Bhara Kau, Sihala, Tarnol, Nilore). 4 are urban, 2 are rural. Approximately 10 eligible FLN teachers per school.\n\n**Two-stage selection.**\n\n1. Randomly select **25 schools** from the population, stratified by location using the overall urban/rural distribution of the full school population (not within sector).\n2. Within each sampled school, randomly select **10 eligible teachers** → 250 selected.\n3. Random within-school assignment: 5 teachers to Arm A, 5 teachers to Arm B.\n\nThe 250-teacher selection is an **oversample** relative to the 200-teacher analytical target (8 per school) to absorb attrition between selection and baseline.\n\n**Open design questions to confirm before launch.**\n\n- Which grade(s) the study covers.\n- Whether each sampled school actually has ≥10 eligible teachers in the target grade(s)."
+    },
+    {
+      "id": "power",
+      "content": "Targeting ≈200 teachers (100 per arm) clustered in 25 schools (8 per cluster).\n\n**Assumed inputs (to be validated against historical platform data before launch):**\n\n- Weekly-retention proportion in Arm B: 0.40 (DC standalone, plausible default)\n- Hypothesized effect: human-coach uplift of ≈12pp → 0.52 in Arm A\n- Intra-cluster correlation (ICC) for retention: 0.05 (assumed from comparable ed-tech rollouts)\n- α = 0.05, two-sided\n- Design effect with m = 8 per cluster, ICC = 0.05: 1 + (8 − 1) × 0.05 = **1.35**\n\n**MDE.** Effective sample per arm = 100 / 1.35 ≈ 74. With 80% power and a baseline of 0.40, MDE on the proportion is ≈11–12pp. The hypothesized 12pp uplift is right at the margin — the study is **borderline-powered for retention** and **under-powered for the implementation-rate outcome** unless effect sizes are larger.\n\n**Decision:** if the implementation-rate outcome turns out to be policy-critical, either (a) increase the sample, or (b) treat it as exploratory and pre-specify retention as the single primary endpoint."
+    },
+    {
+      "id": "measurement",
+      "content": "**Primary outcomes.**\n\n- *Take-up:* binary, did the teacher complete ≥1 DC session within 2 weeks of treatment assignment.\n- *Weekly retention:* proportion of weeks (out of 4) in which the teacher completed ≥1 DC session.\n- *Implementation rate:* among teachers with ≥2 DC sessions, share of feedback items in session N that show evidence of being addressed in session N+1 (rubric-coded by analyst).\n\n**Quantitative — telemetry.** System logs capture login frequency, session duration, and timing of all DC interactions. This is the spine of the take-up and retention measures.\n\n**Qualitative — log-interviews.** Brief semi-structured interviews with a purposive subsample of teachers immediately after a high-intensity usage period, to capture how teachers interpret the DC feedback in the moment. Companion qual exploration document linked in the brief."
+    },
+    {
+      "id": "analysis",
+      "content": "**Primary comparison.** Arm A vs Arm B on weekly retention. Cluster-robust SEs at the school level. Difference-in-proportions test, plus a school-fixed-effects linear-probability model as robustness check.\n\n**Pre-specified covariates.** Sector (urban/rural stratum), grade level, baseline platform familiarity (proxy: any platform login in the 30 days pre-randomisation).\n\n**Secondary.**\n\n- Take-up: same model, binary outcome.\n- Implementation rate: descriptive in v1; effect size reported with caveat about power.\n\n**Multiple-comparison handling.** Three outcomes; report both unadjusted p-values and BH-adjusted q-values."
+    },
+    {
+      "id": "results",
+      "content": "_To be populated as the experiment runs (Q1 2026)._"
+    },
+    {
+      "id": "postmortem",
+      "content": "_To be filled in at endline._"
+    }
+  ]
+}
