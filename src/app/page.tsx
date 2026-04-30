@@ -14,7 +14,7 @@ export default async function DashboardPage() {
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-2xl font-semibold tracking-tight">Experiments</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Experimentation Playground</h1>
         <p className="mt-1 text-sm text-slate-600">
           Plans evolve. Track every version, ground every change in a reason.
         </p>

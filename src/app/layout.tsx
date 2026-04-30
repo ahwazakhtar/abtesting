@@ -3,7 +3,7 @@ import Link from "next/link";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "AB Testing Tracker",
+  title: "Experimentation Playground",
   description: "Versioned, iterable AB testing plans for real-world experiments.",
 };
 
@@ -14,7 +14,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <header className="border-b border-slate-200 bg-white">
           <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
             <Link href="/" className="font-semibold tracking-tight">
-              AB Testing Tracker
+              Experimentation Playground
             </Link>
             <nav className="flex items-center gap-2 text-sm">
               <Link href="/consultations" className="rounded px-3 py-1.5 text-slate-600 hover:bg-slate-100">
