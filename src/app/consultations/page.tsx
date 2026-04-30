@@ -1,10 +1,18 @@
 import Link from "next/link";
 import { listConsultations } from "@/lib/consultation-storage";
+import { getConsultation } from "@/lib/consultation-storage";
 
 export const dynamic = "force-dynamic";
 
 export default async function ConsultationsPage() {
-  const consultations = await listConsultations();
+  const metas = await listConsultations();
+  // Load message counts for each consultation.
+  const consultations = await Promise.all(
+    metas.map(async (m) => {
+      const c = await getConsultation(m.id);
+      return { ...m, messageCount: c?.messages.length ?? 0 };
+    }),
+  );
 
   return (
     <div>
@@ -40,12 +48,17 @@ export default async function ConsultationsPage() {
             <li key={c.id}>
               <Link
                 href={`/consultations/${c.id}`}
-                className="block rounded-lg border border-slate-200 bg-white p-5 transition hover:border-slate-400 hover:shadow-sm"
+                className="flex flex-col rounded-lg border border-slate-200 bg-white p-5 transition hover:border-slate-400 hover:shadow-sm"
               >
                 <p className="font-medium leading-snug">{c.title}</p>
-                <p className="mt-3 text-xs text-slate-500">
-                  {new Date(c.updatedAt).toLocaleDateString()}
-                </p>
+                <div className="mt-3 flex items-center justify-between">
+                  <p className="text-xs text-slate-500">
+                    {new Date(c.updatedAt).toLocaleDateString()}
+                    {" · "}
+                    {Math.floor(c.messageCount / 2)} exchange{Math.floor(c.messageCount / 2) !== 1 ? "s" : ""}
+                  </p>
+                  <span className="text-xs font-medium text-accent">Continue →</span>
+                </div>
               </Link>
             </li>
           ))}

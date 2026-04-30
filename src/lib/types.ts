@@ -117,6 +117,12 @@ export interface Consultation extends ConsultationMeta {
 
 // ─── Doc Review ───────────────────────────────────────────────────────────────
 
+export interface DocReviewVersion {
+  review: string;
+  feedback: string; // what triggered this version
+  createdAt: string;
+}
+
 export interface DocReviewMeta {
   id: string;
   docUrl: string;
@@ -128,6 +134,7 @@ export interface DocReviewMeta {
 export interface DocReview extends DocReviewMeta {
   docContent: string;
   review: string; // PhD-level critique, editable
+  history?: DocReviewVersion[]; // previous review versions
 }
 export interface Proposal {
   baseVersion: number;

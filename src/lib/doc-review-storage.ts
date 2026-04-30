@@ -58,7 +58,7 @@ export async function createDocReview(r: DocReview): Promise<DocReviewMeta> {
   return meta;
 }
 
-export async function updateDocReview(id: string, patch: Partial<Pick<DocReview, "review" | "docContent" | "docTitle">>): Promise<DocReview> {
+export async function updateDocReview(id: string, patch: Partial<Pick<DocReview, "review" | "docContent" | "docTitle" | "history">>): Promise<DocReview> {
   const r = await getDocReview(id);
   if (!r) throw new Error(`DocReview ${id} not found`);
   const now = new Date().toISOString();

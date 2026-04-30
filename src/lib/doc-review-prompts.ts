@@ -40,3 +40,34 @@ export function docReviewPrompt(docTitle: string, docContent: string): { system:
     user: `Document title: ${docTitle || "(untitled)"}\n\nFull document content:\n\n${docContent}`,
   };
 }
+
+export function docReviewIteratePrompt(opts: {
+  docTitle: string;
+  docContent: string;
+  currentReview: string;
+  feedback: string;
+}): { system: string; user: string } {
+  return {
+    system:
+      DOC_REVIEW_SYSTEM +
+      `\n\nYou are UPDATING an existing review based on new feedback or context from the user.
+Rules:
+- Revise only the parts of the review that are genuinely affected by the feedback.
+- If the feedback resolves an issue you raised, acknowledge it and remove or downgrade that concern.
+- If the feedback introduces a new concern, add it.
+- Return the full updated review (not a diff), in the same format as the original.
+- Begin with a one-sentence note describing what changed relative to the previous version.`,
+    user: `Document title: ${opts.docTitle || "(untitled)"}
+
+DOCUMENT CONTENT:
+${opts.docContent}
+
+PREVIOUS REVIEW:
+${opts.currentReview}
+
+NEW FEEDBACK / UPDATED CONTEXT FROM USER:
+${opts.feedback}
+
+Produce the updated review.`,
+  };
+}
