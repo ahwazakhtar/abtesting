@@ -123,6 +123,11 @@ export async function appendVersion(id: string, version: Version): Promise<Exper
   return newMeta;
 }
 
+export async function patchVersionReview(id: string, versionNumber: number, review: string) {
+  const v = await readJson<Version>(versionFile(id, versionNumber));
+  await writeJson(versionFile(id, versionNumber), { ...v, phdReview: review });
+}
+
 export async function deleteExperiment(id: string) {
   await fs.rm(expDir(id), { recursive: true, force: true });
   const idx = await listExperiments();

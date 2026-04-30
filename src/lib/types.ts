@@ -78,6 +78,8 @@ export interface Version {
   // Short LLM-written summary of what changed and why.
   summary: string;
   stages: Stage[];
+  // PhD-level economist critique, generated asynchronously after the version is accepted.
+  phdReview?: string;
 }
 
 export interface ExperimentMeta {

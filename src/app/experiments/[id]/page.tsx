@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getExperiment } from "@/lib/storage";
 import StageList from "@/components/StageList";
 import VersionTimeline from "@/components/VersionTimeline";
+import PhDReviewPanel from "@/components/PhDReviewPanel";
 
 export const dynamic = "force-dynamic";
 
@@ -36,6 +37,11 @@ export default async function ExperimentPage({ params }: { params: { id: string 
           Current plan — v{current.number}
         </div>
         <StageList stages={current.stages} />
+        <PhDReviewPanel
+          experimentId={exp.id}
+          versionNumber={current.number}
+          initialReview={current.phdReview}
+        />
       </div>
 
       <aside>

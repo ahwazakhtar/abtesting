@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { appendVersion, getExperiment } from "@/lib/storage";
+import { appendVersion, getExperiment, patchVersionReview } from "@/lib/storage";
+import { runPhDReview } from "@/lib/review";
 import { Proposal, Version } from "@/lib/types";
 
 export const runtime = "nodejs";
@@ -27,5 +28,14 @@ export async function POST(req: Request, ctx: { params: { id: string } }) {
     stages: p.stages,
   };
   const meta = await appendVersion(ctx.params.id, next);
+
+  // Spawn PhD review asynchronously — does not block the response.
+  runPhDReview(
+    { title: exp.title, description: exp.description },
+    next.stages,
+  )
+    .then((review) => patchVersionReview(ctx.params.id, next.number, review))
+    .catch((err) => console.error("[phd-review] failed:", err));
+
   return NextResponse.json({ experiment: meta, version: next });
 }
