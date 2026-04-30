@@ -95,7 +95,40 @@ export interface Experiment extends ExperimentMeta {
   versions: Version[];
 }
 
-// A pending proposal from the LLM that the user hasn't accepted yet.
+// ─── Consultation (PhD Advisor) ───────────────────────────────────────────────
+
+export interface ConsultationMessage {
+  id: string;
+  role: "user" | "assistant";
+  content: string;
+  editedAt?: string; // set when manually edited
+}
+
+export interface ConsultationMeta {
+  id: string;
+  title: string; // auto-derived from first user message
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Consultation extends ConsultationMeta {
+  messages: ConsultationMessage[];
+}
+
+// ─── Doc Review ───────────────────────────────────────────────────────────────
+
+export interface DocReviewMeta {
+  id: string;
+  docUrl: string;
+  docTitle: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface DocReview extends DocReviewMeta {
+  docContent: string;
+  review: string; // PhD-level critique, editable
+}
 export interface Proposal {
   baseVersion: number;
   triggerKind: Version["triggerKind"];

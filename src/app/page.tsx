@@ -1,10 +1,16 @@
 import Link from "next/link";
 import { listExperiments } from "@/lib/storage";
+import { listConsultations } from "@/lib/consultation-storage";
+import { listDocReviews } from "@/lib/doc-review-storage";
 
 export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
-  const exps = await listExperiments();
+  const [exps, consultations, docReviews] = await Promise.all([
+    listExperiments(),
+    listConsultations(),
+    listDocReviews(),
+  ]);
   return (
     <div>
       <div className="mb-6">
@@ -87,6 +93,38 @@ export default async function DashboardPage() {
           </div>
         </div>
       </details>
+
+      {/* Quick-access panels for the other two modules */}
+      <div className="mb-8 grid gap-4 sm:grid-cols-2">
+        <Link
+          href="/consultations"
+          className="flex flex-col rounded-lg border border-slate-200 bg-white p-5 transition hover:border-slate-400 hover:shadow-sm"
+        >
+          <div className="flex items-baseline justify-between">
+            <span className="font-semibold">PhD Advisor</span>
+            <span className="text-xs text-slate-500">{consultations.length} sessions</span>
+          </div>
+          <p className="mt-1 text-sm text-slate-600">
+            One-off methodology questions — IRR setup, power, identification, mediation.
+            The advisor asks follow-up questions when it needs more context.
+          </p>
+          <span className="mt-3 text-xs font-medium text-accent">Ask a question →</span>
+        </Link>
+        <Link
+          href="/doc-reviews"
+          className="flex flex-col rounded-lg border border-slate-200 bg-white p-5 transition hover:border-slate-400 hover:shadow-sm"
+        >
+          <div className="flex items-baseline justify-between">
+            <span className="font-semibold">Doc Review</span>
+            <span className="text-xs text-slate-500">{docReviews.length} reviews</span>
+          </div>
+          <p className="mt-1 text-sm text-slate-600">
+            Paste a Google Doc link for a PhD-level critique of concept notes,
+            protocols, analysis plans, and evaluation reports.
+          </p>
+          <span className="mt-3 text-xs font-medium text-accent">Review a doc →</span>
+        </Link>
+      </div>
 
       {exps.length === 0 ? (
         <div className="rounded-lg border border-dashed border-slate-300 bg-white p-10 text-center">

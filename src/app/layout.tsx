@@ -16,7 +16,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <Link href="/" className="font-semibold tracking-tight">
               AB Testing Tracker
             </Link>
-            <nav className="text-sm text-slate-600">
+            <nav className="flex items-center gap-2 text-sm">
+              <Link href="/consultations" className="rounded px-3 py-1.5 text-slate-600 hover:bg-slate-100">
+                PhD Advisor
+              </Link>
+              <Link href="/doc-reviews" className="rounded px-3 py-1.5 text-slate-600 hover:bg-slate-100">
+                Doc Review
+              </Link>
               <Link href="/experiments/new" className="rounded bg-accent px-3 py-1.5 text-white hover:bg-blue-700">
                 New experiment
               </Link>
