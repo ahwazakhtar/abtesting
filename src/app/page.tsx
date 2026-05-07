@@ -15,22 +15,23 @@ export default async function DashboardPage() {
     <div>
       <div className="mb-6">
         <h1 className="text-2xl font-semibold tracking-tight">Experimentation Playground</h1>
-        <p className="mt-1 text-sm text-slate-600">
+        <p className="mt-1 text-sm" style={{ color: "var(--fg-3)" }}>
           Plans evolve. Track every version, ground every change in a reason.
         </p>
       </div>
 
       <details
         open={exps.length === 0}
-        className="group mb-6 rounded-lg border border-slate-200 bg-white p-5 open:pb-6"
+        className="group mb-6 rounded-lg border p-5 open:pb-6"
+        style={{ borderColor: "var(--border)", background: "var(--surface)" }}
       >
         <summary className="flex cursor-pointer list-none items-center justify-between">
           <span className="font-semibold">User guide</span>
-          <span className="text-xs text-slate-500 group-open:hidden">Show</span>
-          <span className="hidden text-xs text-slate-500 group-open:inline">Hide</span>
+          <span className="text-xs group-open:hidden" style={{ color: "var(--fg-4)" }}>Show</span>
+          <span className="hidden text-xs group-open:inline" style={{ color: "var(--fg-4)" }}>Hide</span>
         </summary>
 
-        <div className="mt-4 space-y-4 text-sm text-slate-700">
+        <div className="mt-4 space-y-4 text-sm" style={{ color: "var(--fg-2)" }}>
           <p>
             This app turns an A/B test plan into a living document. You draft a first
             version from a brief, then iterate by pasting feedback or meeting notes —
@@ -39,7 +40,7 @@ export default async function DashboardPage() {
           </p>
 
           <div>
-            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--fg-4)" }}>
               Workflow
             </p>
             <ol className="list-decimal space-y-1.5 pl-5">
@@ -72,7 +73,7 @@ export default async function DashboardPage() {
           </div>
 
           <div>
-            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--fg-4)" }}>
               Tips
             </p>
             <ul className="list-disc space-y-1.5 pl-5">

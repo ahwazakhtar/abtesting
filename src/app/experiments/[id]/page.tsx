@@ -4,6 +4,7 @@ import { getExperiment } from "@/lib/storage";
 import StageList from "@/components/StageList";
 import VersionTimeline from "@/components/VersionTimeline";
 import MEReviewPanel from "@/components/MEReviewPanel";
+import KeyTermsSection from "@/components/KeyTermsSection";
 import AssetsPane from "@/components/AssetsPane";
 import CommentsSection from "@/components/CommentsSection";
 
@@ -51,13 +52,18 @@ export default async function ExperimentPage({ params }: { params: { id: string 
         <div className="mb-3 text-xs uppercase tracking-wide" style={{ color: "var(--fg-4)" }}>
           Current plan — v{current.number}
         </div>
+
         <StageList stages={current.stages} />
+
+        {/* Key terms appear after the postmortem stage if a review has been run */}
+        <KeyTermsSection keyTerms={current.meReviewKeyTerms ?? []} />
 
         <MEReviewPanel
           experimentId={exp.id}
           versionNumber={current.number}
           initialReview={current.meReview ?? current.phdReview}
           initialReviewSimplified={current.meReviewSimplified}
+          initialKeyTerms={current.meReviewKeyTerms}
         />
 
         <AssetsPane

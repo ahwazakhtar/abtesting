@@ -29,7 +29,7 @@ export async function POST(_req: Request, ctx: { params: { id: string } }) {
     return NextResponse.json({ error: `LLM call failed: ${(e as Error).message}` }, { status: 500 });
   }
 
-  const { technical, simplified } = parseReviewSections(rawReview);
-  const updated = await updateDocReview(ctx.params.id, { review: technical, reviewSimplified: simplified });
+  const { technical, simplified, keyTerms } = parseReviewSections(rawReview);
+  const updated = await updateDocReview(ctx.params.id, { review: technical, reviewSimplified: simplified, reviewKeyTerms: keyTerms });
   return NextResponse.json({ review: updated });
 }

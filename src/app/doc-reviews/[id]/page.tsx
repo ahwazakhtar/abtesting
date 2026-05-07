@@ -22,7 +22,8 @@ export default function DocReviewPage() {
 
   const [regenerating, setRegenerating] = useState(false);
 
-  const [activeTab, setActiveTab] = useState<"technical" | "simple">("technical");
+  // Non-technical is the default first tab
+  const [activeTab, setActiveTab] = useState<"simple" | "technical">("simple");
 
   useEffect(() => {
     fetch(`/api/doc-reviews/${id}`)
@@ -218,6 +219,15 @@ export default function DocReviewPage() {
             {!editing && (
               <div className="ml-auto flex gap-1">
                 <button
+                  onClick={() => setActiveTab("simple")}
+                  className={`rounded px-2.5 py-1 text-xs font-medium transition ${
+                    activeTab === "simple" ? "bg-amber-600 text-white" : ""
+                  }`}
+                  style={activeTab !== "simple" ? { color: "var(--amber-text)" } : {}}
+                >
+                  In plain terms
+                </button>
+                <button
                   onClick={() => setActiveTab("technical")}
                   className={`rounded px-2.5 py-1 text-xs font-medium transition ${
                     activeTab === "technical" ? "bg-amber-600 text-white" : ""
@@ -225,15 +235,6 @@ export default function DocReviewPage() {
                   style={activeTab !== "technical" ? { color: "var(--amber-text)" } : {}}
                 >
                   Technical
-                </button>
-                <button
-                  onClick={() => setActiveTab("simple")}
-                  className={`rounded px-2.5 py-1 text-xs font-medium transition ${
-                    activeTab === "simple" ? "bg-amber-600 text-white" : ""
-                  }`}
-                  style={activeTab !== "simple" ? { color: "var(--amber-text)" } : {}}
-                >
-                  Explain in simple terms
                 </button>
               </div>
             )}
@@ -271,11 +272,25 @@ export default function DocReviewPage() {
                 <Markdown>{review.review}</Markdown>
               </div>
             ) : (
-              <div className="prose prose-sm max-w-none">
-                <p className="mb-3 text-xs font-medium uppercase tracking-wide" style={{ color: "var(--amber-text)" }}>
-                  Plain-language summary for non-specialist readers
-                </p>
-                <Markdown>{review.reviewSimplified ?? "(No plain-language explanation available. Regenerate the review to get one.)"}</Markdown>
+              <div>
+                <div className="prose prose-sm max-w-none">
+                  <Markdown>{review.reviewSimplified ?? "(No plain-language explanation available. Regenerate the review to get one.)"}</Markdown>
+                </div>
+                {review.reviewKeyTerms && review.reviewKeyTerms.length > 0 && (
+                  <div className="mt-5 rounded-md border p-4" style={{ borderColor: "var(--amber-border)" }}>
+                    <p className="mb-3 text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--amber-heading)" }}>
+                      Key concepts used in this review
+                    </p>
+                    <dl className="space-y-3">
+                      {review.reviewKeyTerms.map((t) => (
+                        <div key={t.term}>
+                          <dt className="text-sm font-semibold" style={{ color: "var(--amber-heading)" }}>{t.term}</dt>
+                          <dd className="mt-0.5 text-sm" style={{ color: "var(--amber-text)" }}>{t.definition}</dd>
+                        </div>
+                      ))}
+                    </dl>
+                  </div>
+                )}
               </div>
             )}
           </div>

@@ -82,8 +82,17 @@ export interface Version {
   meReview?: string;
   // Plain-language explanation of the review for a non-economist audience.
   meReviewSimplified?: string;
+  // Up to 3 key methods/terms extracted from the review, for non-specialists.
+  meReviewKeyTerms?: KeyTerm[];
   // Legacy field kept for backward compat with existing stored data.
   phdReview?: string;
+}
+
+// ─── Key Terms ───────────────────────────────────────────────────────────────
+
+export interface KeyTerm {
+  term: string;       // e.g. "Randomization"
+  definition: string; // one sentence, jargon-free
 }
 
 // ─── Assets ──────────────────────────────────────────────────────────────────
@@ -145,6 +154,7 @@ export interface Consultation extends ConsultationMeta {
 export interface DocReviewVersion {
   review: string;
   reviewSimplified?: string;
+  reviewKeyTerms?: KeyTerm[];
   feedback: string; // what triggered this version
   createdAt: string;
 }
@@ -159,9 +169,10 @@ export interface DocReviewMeta {
 
 export interface DocReview extends DocReviewMeta {
   docContent: string;
-  review: string;             // M&E critique, editable
-  reviewSimplified?: string;  // Plain-language explanation
-  history?: DocReviewVersion[]; // previous review versions
+  review: string;              // M&E critique, editable
+  reviewSimplified?: string;   // Plain-language explanation
+  reviewKeyTerms?: KeyTerm[];  // Up to 3 key terms for non-specialists
+  history?: DocReviewVersion[];
 }
 export interface Proposal {
   baseVersion: number;

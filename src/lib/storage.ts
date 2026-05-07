@@ -4,7 +4,7 @@
 
 import fs from "node:fs/promises";
 import path from "node:path";
-import { Asset, Comment, Experiment, ExperimentMeta, Version } from "./types";
+import { Asset, Comment, Experiment, ExperimentMeta, KeyTerm, Version } from "./types";
 
 const DATA_DIR = path.join(process.cwd(), "data");
 const EXPERIMENTS_DIR = path.join(DATA_DIR, "experiments");
@@ -136,9 +136,10 @@ export async function patchVersionReview(
   versionNumber: number,
   meReview: string,
   meReviewSimplified: string,
+  meReviewKeyTerms: KeyTerm[],
 ) {
   const v = await readJson<Version>(versionFile(id, versionNumber));
-  await writeJson(versionFile(id, versionNumber), { ...v, meReview, meReviewSimplified });
+  await writeJson(versionFile(id, versionNumber), { ...v, meReview, meReviewSimplified, meReviewKeyTerms });
 }
 
 export async function deleteExperiment(id: string) {

@@ -1,5 +1,5 @@
 import { getClient, MODEL } from "./openai";
-import { ExperimentMeta, Stage, STAGE_META } from "./types";
+import { ExperimentMeta, KeyTerm, Stage, STAGE_META } from "./types";
 
 const ME_REVIEW_SYSTEM = `
 You are a senior M&E (Monitoring & Evaluation) specialist with deep expertise in
@@ -32,9 +32,11 @@ genuinely present:
 10. **Pre-registration / analysis lock** — Is the analysis plan sufficiently
     pre-specified to prevent HARKing?
 
-Return your response in TWO sections separated exactly by the string "---SIMPLIFIED---".
+Return your response in THREE sections, separated by exact separator strings.
 
-Section 1 — Technical M&E Review (for the experiment team):
+━━━ SECTION 1: Technical M&E Review (for the experiment team) ━━━
+Separated from section 2 by the string: ---SIMPLIFIED---
+
 Format as markdown with:
 - A one-paragraph executive summary.
 - A section per issue found, with a severity label (**Critical**, **Major**, or
@@ -42,13 +44,25 @@ Format as markdown with:
 - A final scorecard table rating each dimension: OK / Concern / Critical.
 Be direct and specific. Cite numbers from the plan. Do not pad with praise.
 
-Section 2 — Plain-Language Explanation (for stakeholders not trained in economics):
-Write 3–5 short paragraphs explaining what the M&E Review found, in plain English.
+━━━ SECTION 2: Plain-Language Explanation ━━━
+Separated from section 3 by the string: ---KEYTERMS---
+
+Write 3–5 short paragraphs explaining what the M&E Review found in plain English.
 Assume the reader understands the project context but has no economics background.
-Avoid jargon; if you must use a technical term, define it immediately. Focus on:
-what the experiment is trying to do, what the main concerns are (if any), and
-what it would mean if the concerns are not addressed. Keep it accessible and
-honest — do not over-reassure.
+Avoid jargon; when you must use one of the 3 key terms (which you will list in
+section 3), use it naturally and briefly note what it means in parentheses.
+Focus on: what the experiment is trying to do, what the main concerns are, and
+what it would mean if they are not addressed.
+
+━━━ SECTION 3: Key Terms ━━━
+Output valid JSON only — an array of exactly 3 objects. Pick the 3 methods or
+concepts from YOUR review that are most important for a non-specialist to
+understand. Each object has two string fields:
+  "term"       — the name of the method or concept (4 words or fewer)
+  "definition" — one clear sentence a non-specialist can understand
+
+Example format:
+[{"term":"Randomization","definition":"Assigning participants to groups by chance so neither group is systematically different at the start."},{"term":"Statistical power","definition":"The experiment's ability to detect a real effect if one truly exists; too little power means real improvements go undetected."},{"term":"Intent-to-treat","definition":"Measuring outcomes for everyone originally assigned to a group, even those who did not fully participate, to reflect real-world conditions."}]
 `.trim();
 
 function stagesToMarkdown(stages: Stage[]): string {
@@ -57,10 +71,25 @@ function stagesToMarkdown(stages: Stage[]): string {
     .join("\n\n");
 }
 
+function parseKeyTerms(raw: string): KeyTerm[] {
+  try {
+    const parsed = JSON.parse(raw.trim());
+    if (Array.isArray(parsed)) {
+      return parsed.slice(0, 3).map((t) => ({
+        term: String(t.term ?? ""),
+        definition: String(t.definition ?? ""),
+      }));
+    }
+  } catch {
+    // fall through to empty
+  }
+  return [];
+}
+
 export async function runMEReview(
   meta: Pick<ExperimentMeta, "title" | "description">,
   stages: Stage[],
-): Promise<{ technical: string; simplified: string }> {
+): Promise<{ technical: string; simplified: string; keyTerms: KeyTerm[] }> {
   const client = getClient();
 
   const model =
@@ -73,7 +102,7 @@ Description: ${meta.description}
 CURRENT PLAN:
 ${stagesToMarkdown(stages)}
 
-Produce the M&E review in the two-section format described.`;
+Produce the M&E review in the three-section format described.`;
 
   const completion = await client.chat.completions.create({
     model,
@@ -84,9 +113,12 @@ Produce the M&E review in the two-section format described.`;
   });
 
   const raw = completion.choices[0]?.message?.content?.trim() ?? "";
-  const parts = raw.split("---SIMPLIFIED---");
+  const [techPart, rest] = raw.split("---SIMPLIFIED---");
+  const [simplePart, keyTermsPart] = (rest ?? "").split("---KEYTERMS---");
+
   return {
-    technical: parts[0]?.trim() || raw,
-    simplified: parts[1]?.trim() || "(No plain-language explanation generated.)",
+    technical: techPart?.trim() || raw,
+    simplified: simplePart?.trim() || "(No plain-language explanation generated.)",
+    keyTerms: parseKeyTerms(keyTermsPart ?? ""),
   };
 }

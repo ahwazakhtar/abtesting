@@ -6,7 +6,6 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 // GET /api/experiments/[id]/versions/[n]/review
-// Returns { meReview, meReviewSimplified } once ready, or nulls while pending.
 export async function GET(
   _req: Request,
   ctx: { params: { id: string; n: string } },
@@ -20,11 +19,11 @@ export async function GET(
   return NextResponse.json({
     meReview: version.meReview ?? version.phdReview ?? null,
     meReviewSimplified: version.meReviewSimplified ?? null,
+    meReviewKeyTerms: version.meReviewKeyTerms ?? null,
   });
 }
 
-// POST /api/experiments/[id]/versions/[n]/review
-// Triggers M&E review generation. Runs async — poll GET to check when ready.
+// POST /api/experiments/[id]/versions/[n]/review — trigger on demand
 export async function POST(
   _req: Request,
   ctx: { params: { id: string; n: string } },
@@ -38,22 +37,21 @@ export async function POST(
   const version = await getVersion(ctx.params.id, n);
   if (!version) return NextResponse.json({ error: "version not found" }, { status: 404 });
 
-  // If already generated, return immediately.
   if (version.meReview || version.phdReview) {
     return NextResponse.json({
       meReview: version.meReview ?? version.phdReview,
       meReviewSimplified: version.meReviewSimplified ?? null,
+      meReviewKeyTerms: version.meReviewKeyTerms ?? null,
       cached: true,
     });
   }
 
-  // Spawn async generation — response returns immediately.
   runMEReview(
     { title: exp.title, description: exp.description },
     version.stages,
   )
-    .then(({ technical, simplified }) =>
-      patchVersionReview(ctx.params.id, n, technical, simplified),
+    .then(({ technical, simplified, keyTerms }) =>
+      patchVersionReview(ctx.params.id, n, technical, simplified, keyTerms),
     )
     .catch((err) => console.error("[me-review] failed:", err));
 

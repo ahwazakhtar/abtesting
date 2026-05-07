@@ -71,7 +71,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: `LLM call failed: ${(e as Error).message}` }, { status: 500 });
   }
 
-  const { technical, simplified } = parseReviewSections(rawReview);
+  const { technical, simplified, keyTerms } = parseReviewSections(rawReview);
 
   const now = new Date().toISOString();
   const docReview: DocReview = {
@@ -81,6 +81,7 @@ export async function POST(req: Request) {
     docContent: truncated,
     review: technical,
     reviewSimplified: simplified,
+    reviewKeyTerms: keyTerms,
     createdAt: now,
     updatedAt: now,
   };

@@ -39,11 +39,12 @@ export async function POST(req: Request, ctx: { params: { id: string } }) {
     return NextResponse.json({ error: `LLM call failed: ${(e as Error).message}` }, { status: 500 });
   }
 
-  const { technical, simplified } = parseReviewSections(rawReview);
+  const { technical, simplified, keyTerms } = parseReviewSections(rawReview);
 
   const snapshot: DocReviewVersion = {
     review: r.review,
     reviewSimplified: r.reviewSimplified,
+    reviewKeyTerms: r.reviewKeyTerms,
     feedback,
     createdAt: new Date().toISOString(),
   };
@@ -51,6 +52,7 @@ export async function POST(req: Request, ctx: { params: { id: string } }) {
   const updated = await updateDocReview(ctx.params.id, {
     review: technical,
     reviewSimplified: simplified,
+    reviewKeyTerms: keyTerms,
     history: [...(r.history ?? []), snapshot],
   });
 
