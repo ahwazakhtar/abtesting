@@ -7,6 +7,7 @@ export function getPool(): Pool {
   if (!pool) {
     pool = new Pool({
       host: process.env.PROD_FDE_DATABASE_HOST,
+      port: process.env.PROD_FDE_DATABASE_PORT ? Number(process.env.PROD_FDE_DATABASE_PORT) : undefined,
       database: process.env.PROD_FDE_DATABASE_NAME,
       user: process.env.PROD_FDE_DATABASE_USER,
       password: process.env.PROD_FDE_DATABASE_PASSWORD,

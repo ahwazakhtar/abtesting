@@ -105,6 +105,8 @@ export default function AnalyticsPage() {
         fetch(`/api/analytics/sections${qs}`).then((r) => r.json()),
       ]);
       if (s.error) throw new Error(s.error);
+      if (w.error) throw new Error(w.error);
+      if (sec.error) throw new Error(sec.error);
       setSummary(s);
       setWeeks(w.weeks ?? []);
       setSections(sec.sections ?? []);
@@ -117,6 +119,8 @@ export default function AnalyticsPage() {
 
   useEffect(() => {
     fetchAll();
+    const interval = setInterval(fetchAll, 5 * 60 * 1000);
+    return () => clearInterval(interval);
   }, [fetchAll]);
 
   return (
