@@ -33,42 +33,46 @@ genuinely present:
     pre-specified to prevent HARKing?
 
 Return your response in THREE sections, separated by exact separator strings.
+Do NOT include any section heading, label, or title in your output — just the content.
 
-━━━ SECTION 1: Technical M&E Review (for the experiment team) ━━━
-Separated from section 2 by the string: ---SIMPLIFIED---
+Write the technical review first, then the separator ---SIMPLIFIED---, then the plain-language explanation, then the separator ---KEYTERMS---, then the JSON array.
 
-Format as markdown with:
+Technical review format (markdown):
 - A one-paragraph executive summary.
 - A section per issue found, with a severity label (**Critical**, **Major**, or
   **Minor**) and a concrete recommendation.
 - A final scorecard table rating each dimension: OK / Concern / Critical.
 Be direct and specific. Cite numbers from the plan. Do not pad with praise.
 
-━━━ SECTION 2: Plain-Language Explanation ━━━
-Separated from section 3 by the string: ---KEYTERMS---
-
-Write 3–5 short paragraphs explaining what the M&E Review found in plain English.
-Assume the reader understands the project context but has no economics background.
-Avoid jargon; when you must use one of the 3 key terms (which you will list in
-section 3), use it naturally and briefly note what it means in parentheses.
+Plain-language explanation: 3–5 short paragraphs in plain English for someone
+with no economics background. Avoid jargon; when you must use one of the 3 key
+terms (from the JSON below), use it naturally with a brief parenthetical definition.
 Focus on: what the experiment is trying to do, what the main concerns are, and
 what it would mean if they are not addressed.
 
-━━━ SECTION 3: Key Terms ━━━
-Output valid JSON only — an array of exactly 3 objects. Pick the 3 methods or
-concepts from YOUR review that are most important for a non-specialist to
-understand. Each object has two string fields:
+Key terms: valid JSON only — an array of exactly 3 objects. Pick the 3 methods or
+concepts from YOUR review most important for a non-specialist. Each object:
   "term"       — the name of the method or concept (4 words or fewer)
-  "definition" — one clear sentence a non-specialist can understand
+  "definition" — exactly 3 plain-English sentences: what it is, why it matters
+                 in this context, and what goes wrong if it is not done correctly
 
 Example format:
-[{"term":"Randomization","definition":"Assigning participants to groups by chance so neither group is systematically different at the start."},{"term":"Statistical power","definition":"The experiment's ability to detect a real effect if one truly exists; too little power means real improvements go undetected."},{"term":"Intent-to-treat","definition":"Measuring outcomes for everyone originally assigned to a group, even those who did not fully participate, to reflect real-world conditions."}]
+[{"term":"Randomization","definition":"Randomization means assigning participants to groups by chance, so neither group is systematically different at the start. In this experiment it is the foundation that makes any comparison between groups meaningful. Without it, we cannot tell whether differences in outcomes are caused by the intervention or by pre-existing differences between groups."},{"term":"Statistical power","definition":"Statistical power is the experiment's ability to detect a real effect if one truly exists. Here it depends on sample size, expected effect size, and variation in the data. If power is too low, a genuinely effective program could go undetected simply because the study was too small to see it."}]
 `.trim();
 
 function stagesToMarkdown(stages: Stage[]): string {
   return stages
     .map((s) => `## ${STAGE_META[s.id].title}\n\n${s.content || "_(empty)_"}`)
     .join("\n\n");
+}
+
+// Strip any section header lines the LLM may echo (e.g. "━━━ SECTION 1 ━━━")
+function stripSectionHeaders(text: string): string {
+  return text
+    .split("\n")
+    .filter((line) => !/^[━\-\s]*(section\s*\d|SECTION\s*\d)/i.test(line.trim()))
+    .join("\n")
+    .trim();
 }
 
 function parseKeyTerms(raw: string): KeyTerm[] {
@@ -117,8 +121,8 @@ Produce the M&E review in the three-section format described.`;
   const [simplePart, keyTermsPart] = (rest ?? "").split("---KEYTERMS---");
 
   return {
-    technical: techPart?.trim() || raw,
-    simplified: simplePart?.trim() || "(No plain-language explanation generated.)",
+    technical: stripSectionHeaders(techPart?.trim() || raw),
+    simplified: stripSectionHeaders(simplePart?.trim() || "(No plain-language explanation generated.)"),
     keyTerms: parseKeyTerms(keyTermsPart ?? ""),
   };
 }

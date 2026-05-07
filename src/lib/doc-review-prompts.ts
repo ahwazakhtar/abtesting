@@ -30,33 +30,28 @@ Only raise issues that are genuinely present. If a section is well-handled,
 acknowledge it briefly and move on — do not pad.
 
 Return your response in THREE sections, separated by exact separator strings.
+Do NOT include any section heading, label, or title in your output — just the content.
 
-━━━ SECTION 1: Technical M&E Review (for the research team) ━━━
-Separated from section 2 by the string: ---SIMPLIFIED---
+Write the technical review first, then the separator ---SIMPLIFIED---, then the plain-language explanation, then the separator ---KEYTERMS---, then the JSON array.
 
-Format as markdown with:
+Technical review format (markdown):
 - One-paragraph executive summary.
 - Numbered sections, one per issue found, each with a severity label
   (**Critical**, **Major**, or **Minor**) and a concrete, actionable recommendation.
 - A final scorecard table with each dimension rated: ✓ OK / ⚠ Concern / ✗ Critical.
 
-━━━ SECTION 2: Plain-Language Explanation ━━━
-Separated from section 3 by the string: ---KEYTERMS---
+Plain-language explanation: 3–5 short paragraphs in plain English for someone
+with no M&E or economics background. When you must use one of the 3 key terms
+(from the JSON below), use it naturally with a brief parenthetical definition.
 
-Write 3–5 short paragraphs explaining what the M&E Review found in plain English.
-Assume the reader understands the project context but has no M&E or economics
-background. When you must use one of the 3 key terms (which you will list in
-section 3), use it naturally and briefly note what it means in parentheses.
-
-━━━ SECTION 3: Key Terms ━━━
-Output valid JSON only — an array of exactly 3 objects. Pick the 3 methods or
-concepts from YOUR review that are most important for a non-specialist to
-understand. Each object has two string fields:
+Key terms: valid JSON only — an array of exactly 3 objects. Pick the 3 methods or
+concepts from YOUR review most important for a non-specialist. Each object:
   "term"       — the name of the method or concept (4 words or fewer)
-  "definition" — one clear sentence a non-specialist can understand
+  "definition" — exactly 3 plain-English sentences: what it is, why it matters
+                 in this context, and what goes wrong if it is not done correctly
 
 Example format:
-[{"term":"Randomization","definition":"Assigning participants to groups by chance so neither group is systematically different at the start."},{"term":"Statistical power","definition":"The experiment's ability to detect a real effect if one truly exists."},{"term":"Intent-to-treat","definition":"Measuring outcomes for everyone originally assigned to a group, even those who did not fully participate."}]
+[{"term":"Randomization","definition":"Randomization means assigning participants to groups by chance, so neither group is systematically different at the start. In this document it is the foundation that makes any comparison between groups meaningful. Without it, we cannot tell whether differences in outcomes are caused by the intervention or by pre-existing differences between groups."},{"term":"Statistical power","definition":"Statistical power is the study's ability to detect a real effect if one truly exists. Here it depends on sample size, expected effect size, and variation in the data. If power is too low, a genuinely effective program could go undetected simply because the study was too small to see it."}]
 `.trim();
 
 export function docReviewPrompt(docTitle: string, docContent: string): { system: string; user: string } {
@@ -97,6 +92,14 @@ Produce the updated review.`,
   };
 }
 
+function stripSectionHeaders(text: string): string {
+  return text
+    .split("\n")
+    .filter((line) => !/^[━\-\s]*(section\s*\d|SECTION\s*\d)/i.test(line.trim()))
+    .join("\n")
+    .trim();
+}
+
 export function parseReviewSections(raw: string): { technical: string; simplified: string; keyTerms: KeyTerm[] } {
   const [techPart, rest] = raw.split("---SIMPLIFIED---");
   const [simplePart, keyTermsPart] = (rest ?? "").split("---KEYTERMS---");
@@ -113,8 +116,8 @@ export function parseReviewSections(raw: string): { technical: string; simplifie
   } catch { /* ignore parse errors */ }
 
   return {
-    technical: techPart?.trim() || raw,
-    simplified: simplePart?.trim() || "(No plain-language explanation generated.)",
+    technical: stripSectionHeaders(techPart?.trim() || raw),
+    simplified: stripSectionHeaders(simplePart?.trim() || "(No plain-language explanation generated.)"),
     keyTerms,
   };
 }
