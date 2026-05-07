@@ -170,8 +170,8 @@ export default function AnalyticsPage() {
           {error.includes("not configured") && (
             <span>
               {" "}
-              — add <code className="bg-red-100 px-1 rounded">PROD_FDE_DATABASE_*</code> vars to{" "}
-              <code className="bg-red-100 px-1 rounded">.env.local</code>.
+              — add <code className="bg-red-100 px-1 rounded">PROD_FDE_DATABASE_*</code> environment
+              variables in your Railway service's Variables tab, then redeploy.
             </span>
           )}
         </div>
