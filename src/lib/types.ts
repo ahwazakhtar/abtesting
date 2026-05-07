@@ -78,8 +78,31 @@ export interface Version {
   // Short LLM-written summary of what changed and why.
   summary: string;
   stages: Stage[];
-  // PhD-level economist critique, generated asynchronously after the version is accepted.
+  // M&E Review — technical critique, generated on demand.
+  meReview?: string;
+  // Plain-language explanation of the review for a non-economist audience.
+  meReviewSimplified?: string;
+  // Legacy field kept for backward compat with existing stored data.
   phdReview?: string;
+}
+
+// ─── Assets ──────────────────────────────────────────────────────────────────
+
+export interface Asset {
+  id: string;
+  label: string;   // e.g. "Survey instrument", "Pre-analysis plan"
+  url: string;     // Google Doc, Drive, etc.
+  addedAt: string; // ISO
+}
+
+// ─── Comments ─────────────────────────────────────────────────────────────────
+
+export interface Comment {
+  id: string;
+  authorName: string;
+  content: string;      // May contain @mention syntax
+  mentions: string[];   // Extracted @usernames
+  createdAt: string;    // ISO
 }
 
 export interface ExperimentMeta {
@@ -89,13 +112,15 @@ export interface ExperimentMeta {
   createdAt: string;
   updatedAt: string;
   currentVersion: number;
+  assets?: Asset[];
+  comments?: Comment[];
 }
 
 export interface Experiment extends ExperimentMeta {
   versions: Version[];
 }
 
-// ─── Consultation (PhD Advisor) ───────────────────────────────────────────────
+// ─── Consultation (M&E Advisor) ───────────────────────────────────────────────
 
 export interface ConsultationMessage {
   id: string;
@@ -119,6 +144,7 @@ export interface Consultation extends ConsultationMeta {
 
 export interface DocReviewVersion {
   review: string;
+  reviewSimplified?: string;
   feedback: string; // what triggered this version
   createdAt: string;
 }
@@ -133,7 +159,8 @@ export interface DocReviewMeta {
 
 export interface DocReview extends DocReviewMeta {
   docContent: string;
-  review: string; // PhD-level critique, editable
+  review: string;             // M&E critique, editable
+  reviewSimplified?: string;  // Plain-language explanation
   history?: DocReviewVersion[]; // previous review versions
 }
 export interface Proposal {

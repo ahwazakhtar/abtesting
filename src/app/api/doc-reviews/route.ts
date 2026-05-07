@@ -1,14 +1,13 @@
 import { NextResponse } from "next/server";
 import { nanoid } from "nanoid";
 import { getClient } from "@/lib/openai";
-import { docReviewPrompt } from "@/lib/doc-review-prompts";
+import { docReviewPrompt, parseReviewSections } from "@/lib/doc-review-prompts";
 import { createDocReview, listDocReviews } from "@/lib/doc-review-storage";
 import { DocReview } from "@/lib/types";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-// Model for doc reviews — use a stronger model than the default.
 const REVIEW_MODEL = process.env.OPENAI_REVIEW_MODEL || "gpt-4o";
 
 export async function GET() {
@@ -21,7 +20,6 @@ export async function POST(req: Request) {
   const docUrl = (body.docUrl || "").trim();
   if (!docUrl) return NextResponse.json({ error: "docUrl is required" }, { status: 400 });
 
-  // Extract Google Docs ID and fetch plain-text export.
   const docId = extractGoogleDocId(docUrl);
   if (!docId) {
     return NextResponse.json(
@@ -42,7 +40,6 @@ export async function POST(req: Request) {
       );
     }
     docContent = await fetchRes.text();
-    // Attempt to extract the title from the first non-empty line.
     const firstLine = docContent.split("\n").find((l) => l.trim());
     if (firstLine) docTitle = firstLine.trim().slice(0, 120);
   } catch (e) {
@@ -53,14 +50,13 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "The document appears to be empty." }, { status: 400 });
   }
 
-  // Truncate to ~80k chars to stay within context limits.
   const truncated = docContent.length > 80000
     ? docContent.slice(0, 80000) + "\n\n[… document truncated at 80,000 characters …]"
     : docContent;
 
   const { system, user } = docReviewPrompt(docTitle, truncated);
 
-  let review = "";
+  let rawReview = "";
   try {
     const client = getClient();
     const completion = await client.chat.completions.create({
@@ -70,10 +66,12 @@ export async function POST(req: Request) {
         { role: "user", content: user },
       ],
     });
-    review = completion.choices[0]?.message?.content?.trim() ?? "";
+    rawReview = completion.choices[0]?.message?.content?.trim() ?? "";
   } catch (e) {
     return NextResponse.json({ error: `LLM call failed: ${(e as Error).message}` }, { status: 500 });
   }
+
+  const { technical, simplified } = parseReviewSections(rawReview);
 
   const now = new Date().toISOString();
   const docReview: DocReview = {
@@ -81,7 +79,8 @@ export async function POST(req: Request) {
     docUrl,
     docTitle,
     docContent: truncated,
-    review,
+    review: technical,
+    reviewSimplified: simplified,
     createdAt: now,
     updatedAt: now,
   };

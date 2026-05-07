@@ -18,9 +18,9 @@ export default async function ConsultationsPage() {
     <div>
       <div className="mb-6 flex items-baseline justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">PhD Advisor</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">M&amp;E Advisor</h1>
           <p className="mt-1 text-sm text-slate-600">
-            One-off methodology questions answered at PhD economics level. The advisor asks
+            One-off methodology questions answered by an M&amp;E specialist. The advisor asks
             follow-up questions when it needs more context before giving advice.
           </p>
         </div>

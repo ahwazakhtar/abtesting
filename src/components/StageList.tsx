@@ -13,19 +13,20 @@ export default function StageList({ stages }: { stages: Stage[] }) {
           <section
             key={id}
             id={`stage-${id}`}
-            className="rounded-lg border border-slate-200 bg-white p-5"
+            className="rounded-lg border p-5"
+            style={{ borderColor: "var(--border)", background: "var(--surface)" }}
           >
             <div className="mb-3 flex items-baseline justify-between">
               <h2 className="text-lg font-semibold tracking-tight">
-                <span className="mr-2 text-slate-400">{i + 1}.</span>
+                <span className="mr-2" style={{ color: "var(--fg-4)" }}>{i + 1}.</span>
                 {STAGE_META[id].title}
               </h2>
-              <span className="text-xs text-slate-500">{STAGE_META[id].blurb}</span>
+              <span className="text-xs" style={{ color: "var(--fg-4)" }}>{STAGE_META[id].blurb}</span>
             </div>
             {s?.content ? (
               <Markdown>{s.content}</Markdown>
             ) : (
-              <p className="text-sm italic text-slate-400">Empty</p>
+              <p className="text-sm italic" style={{ color: "var(--fg-4)" }}>Empty</p>
             )}
           </section>
         );

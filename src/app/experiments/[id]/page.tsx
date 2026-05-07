@@ -3,7 +3,9 @@ import { notFound } from "next/navigation";
 import { getExperiment } from "@/lib/storage";
 import StageList from "@/components/StageList";
 import VersionTimeline from "@/components/VersionTimeline";
-import PhDReviewPanel from "@/components/PhDReviewPanel";
+import MEReviewPanel from "@/components/MEReviewPanel";
+import AssetsPane from "@/components/AssetsPane";
+import CommentsSection from "@/components/CommentsSection";
 
 export const dynamic = "force-dynamic";
 
@@ -17,19 +19,22 @@ export default async function ExperimentPage({ params }: { params: { id: string 
       <div>
         <div className="mb-6 flex items-baseline justify-between gap-4">
           <div>
-            <Link href="/" className="text-xs text-slate-500 hover:underline">
+            <Link href="/" className="text-xs hover:underline" style={{ color: "var(--fg-4)" }}>
               ← All experiments
             </Link>
             <h1 className="mt-1 text-2xl font-semibold tracking-tight">{exp.title}</h1>
             {exp.description && (
-              <p className="mt-1 max-w-2xl text-sm text-slate-600">{exp.description}</p>
+              <p className="mt-1 max-w-2xl text-sm" style={{ color: "var(--fg-3)" }}>
+                {exp.description}
+              </p>
             )}
           </div>
           <div className="flex items-center gap-2 shrink-0">
             {exp.id === "digital-coach-promotion" && (
               <Link
                 href={`/experiments/${exp.id}/analytics`}
-                className="rounded border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                className="rounded border px-3 py-2 text-sm font-medium transition hover:opacity-80"
+                style={{ borderColor: "var(--border)", background: "var(--surface)", color: "var(--fg-2)" }}
               >
                 Live analytics
               </Link>
@@ -43,19 +48,31 @@ export default async function ExperimentPage({ params }: { params: { id: string 
           </div>
         </div>
 
-        <div className="mb-3 text-xs uppercase tracking-wide text-slate-500">
+        <div className="mb-3 text-xs uppercase tracking-wide" style={{ color: "var(--fg-4)" }}>
           Current plan — v{current.number}
         </div>
         <StageList stages={current.stages} />
-        <PhDReviewPanel
+
+        <MEReviewPanel
           experimentId={exp.id}
           versionNumber={current.number}
-          initialReview={current.phdReview}
+          initialReview={current.meReview ?? current.phdReview}
+          initialReviewSimplified={current.meReviewSimplified}
+        />
+
+        <AssetsPane
+          experimentId={exp.id}
+          initialAssets={exp.assets ?? []}
+        />
+
+        <CommentsSection
+          experimentId={exp.id}
+          initialComments={exp.comments ?? []}
         />
       </div>
 
       <aside>
-        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500">
+        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide" style={{ color: "var(--fg-4)" }}>
           Version history
         </h2>
         <VersionTimeline

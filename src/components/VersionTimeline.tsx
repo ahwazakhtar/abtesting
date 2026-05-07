@@ -19,22 +19,25 @@ export default function VersionTimeline({
         return (
           <li
             key={v.number}
-            className={`rounded-lg border p-4 ${
-              isCurrent ? "border-accent bg-blue-50/40" : "border-slate-200 bg-white"
-            }`}
+            className="rounded-lg border p-4"
+            style={
+              isCurrent
+                ? { borderColor: "var(--accent, #2563eb)", background: "color-mix(in srgb, #3b82f6 10%, var(--surface))" }
+                : { borderColor: "var(--border)", background: "var(--surface)" }
+            }
           >
             <div className="flex items-baseline justify-between gap-3">
               <div className="flex items-baseline gap-2">
                 <span className="font-mono text-sm font-semibold">v{v.number}</span>
-                <span className="text-xs uppercase tracking-wide text-slate-500">
+                <span className="text-xs uppercase tracking-wide" style={{ color: "var(--fg-4)" }}>
                   {v.triggerKind.replace("_", " ")}
                 </span>
               </div>
-              <span className="text-xs text-slate-500">
+              <span className="text-xs" style={{ color: "var(--fg-4)" }}>
                 {new Date(v.createdAt).toLocaleString()}
               </span>
             </div>
-            <p className="mt-2 text-sm text-slate-700">{v.summary}</p>
+            <p className="mt-2 text-sm" style={{ color: "var(--fg-2)" }}>{v.summary}</p>
             {v.number > 1 && (
               <div className="mt-3 flex gap-3 text-xs">
                 <Link

@@ -86,7 +86,7 @@ export default function ConsultationPage() {
     <div className="mx-auto flex max-w-3xl flex-col" style={{ minHeight: "calc(100vh - 8rem)" }}>
       <div className="mb-4">
         <Link href="/consultations" className="text-xs text-slate-500 hover:underline">
-          ← PhD Advisor
+          ← M&amp;E Advisor
         </Link>
         {consultation && (
           <h1 className="mt-1 text-lg font-semibold leading-snug">{consultation.title}</h1>
@@ -114,7 +114,7 @@ export default function ConsultationPage() {
         {busy && (
           <div className="flex items-start gap-3">
             <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-amber-100 text-xs font-bold text-amber-800">
-              PhD
+              M&E
             </div>
             <div className="mt-1 flex items-center gap-1.5 text-sm text-slate-500">
               <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
@@ -130,7 +130,8 @@ export default function ConsultationPage() {
 
       <form
         onSubmit={send}
-        className="sticky bottom-0 border-t border-slate-200 bg-paper pt-4"
+        className="sticky bottom-0 border-t pt-4"
+        style={{ borderColor: "var(--border)", background: "var(--bg)" }}
       >
         <div className="flex gap-3">
           <textarea
@@ -142,7 +143,8 @@ export default function ConsultationPage() {
             rows={3}
             placeholder="Reply or ask a follow-up… (Enter to send, Shift+Enter for newline)"
             disabled={busy}
-            className="flex-1 rounded border border-slate-300 px-3 py-2 text-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent disabled:opacity-50"
+            className="flex-1 rounded border px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-accent disabled:opacity-50"
+              style={{ borderColor: "var(--border)", background: "var(--surface)", color: "var(--fg)" }}
           />
           <button
             type="submit"
@@ -185,7 +187,7 @@ function MessageBubble({
             : "bg-amber-100 text-amber-800"
         }`}
       >
-        {isUser ? "You" : "PhD"}
+        {isUser ? "You" : "M&E"}
       </div>
 
       <div className={`group relative max-w-[85%] ${isUser ? "items-end" : "items-start"} flex flex-col gap-1`}>
@@ -216,11 +218,8 @@ function MessageBubble({
         ) : (
           <>
             <div
-              className={`rounded-lg px-4 py-3 text-sm ${
-                isUser
-                  ? "bg-accent text-white"
-                  : "border border-slate-200 bg-white text-slate-800"
-              }`}
+              className={`rounded-lg px-4 py-3 text-sm ${isUser ? "bg-accent text-white" : "border"}`}
+              style={isUser ? {} : { borderColor: "var(--border)", background: "var(--surface)", color: "var(--fg)" }}
             >
               {isUser ? (
                 <p className="whitespace-pre-wrap">{msg.content}</p>

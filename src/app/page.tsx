@@ -98,13 +98,14 @@ export default async function DashboardPage() {
       <div className="mb-8 grid gap-4 sm:grid-cols-2">
         <Link
           href="/consultations"
-          className="flex flex-col rounded-lg border border-slate-200 bg-white p-5 transition hover:border-slate-400 hover:shadow-sm"
+          className="flex flex-col rounded-lg border p-5 transition hover:shadow-sm"
+          style={{ borderColor: "var(--border)", background: "var(--surface)" }}
         >
           <div className="flex items-baseline justify-between">
-            <span className="font-semibold">PhD Advisor</span>
-            <span className="text-xs text-slate-500">{consultations.length} sessions</span>
+            <span className="font-semibold">M&amp;E Advisor</span>
+            <span className="text-xs" style={{ color: "var(--fg-4)" }}>{consultations.length} sessions</span>
           </div>
-          <p className="mt-1 text-sm text-slate-600">
+          <p className="mt-1 text-sm" style={{ color: "var(--fg-3)" }}>
             One-off methodology questions — IRR setup, power, identification, mediation.
             The advisor asks follow-up questions when it needs more context.
           </p>
@@ -112,14 +113,15 @@ export default async function DashboardPage() {
         </Link>
         <Link
           href="/doc-reviews"
-          className="flex flex-col rounded-lg border border-slate-200 bg-white p-5 transition hover:border-slate-400 hover:shadow-sm"
+          className="flex flex-col rounded-lg border p-5 transition hover:shadow-sm"
+          style={{ borderColor: "var(--border)", background: "var(--surface)" }}
         >
           <div className="flex items-baseline justify-between">
             <span className="font-semibold">Doc Review</span>
-            <span className="text-xs text-slate-500">{docReviews.length} reviews</span>
+            <span className="text-xs" style={{ color: "var(--fg-4)" }}>{docReviews.length} reviews</span>
           </div>
-          <p className="mt-1 text-sm text-slate-600">
-            Paste a Google Doc link for a PhD-level critique of concept notes,
+          <p className="mt-1 text-sm" style={{ color: "var(--fg-3)" }}>
+            Paste a Google Doc link for an M&amp;E-level critique of concept notes,
             protocols, analysis plans, and evaluation reports.
           </p>
           <span className="mt-3 text-xs font-medium text-accent">Review a doc →</span>
@@ -127,8 +129,9 @@ export default async function DashboardPage() {
       </div>
 
       {exps.length === 0 ? (
-        <div className="rounded-lg border border-dashed border-slate-300 bg-white p-10 text-center">
-          <p className="text-slate-600">No experiments yet.</p>
+        <div className="rounded-lg border border-dashed p-10 text-center"
+          style={{ borderColor: "var(--border-2)", background: "var(--surface)" }}>
+          <p style={{ color: "var(--fg-3)" }}>No experiments yet.</p>
           <Link
             href="/experiments/new"
             className="mt-4 inline-block rounded bg-accent px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
@@ -142,18 +145,20 @@ export default async function DashboardPage() {
             <li key={e.id}>
               <Link
                 href={`/experiments/${e.id}`}
-                className="block rounded-lg border border-slate-200 bg-white p-5 transition hover:border-slate-400 hover:shadow-sm"
+                className="block rounded-lg border p-5 transition hover:shadow-sm"
+                style={{ borderColor: "var(--border)", background: "var(--surface)" }}
               >
                 <div className="flex items-start justify-between gap-3">
                   <h2 className="font-semibold">{e.title}</h2>
-                  <span className="shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">
+                  <span className="shrink-0 rounded-full px-2 py-0.5 text-xs font-medium"
+                    style={{ background: "var(--surface-2)", color: "var(--fg-3)" }}>
                     v{e.currentVersion}
                   </span>
                 </div>
                 {e.description && (
-                  <p className="mt-2 line-clamp-3 text-sm text-slate-600">{e.description}</p>
+                  <p className="mt-2 line-clamp-3 text-sm" style={{ color: "var(--fg-3)" }}>{e.description}</p>
                 )}
-                <p className="mt-3 text-xs text-slate-500">
+                <p className="mt-3 text-xs" style={{ color: "var(--fg-4)" }}>
                   Updated {new Date(e.updatedAt).toLocaleDateString()}
                 </p>
               </Link>

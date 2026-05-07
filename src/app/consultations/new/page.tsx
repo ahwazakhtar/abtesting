@@ -32,7 +32,7 @@ export default function NewConsultationPage() {
   return (
     <div className="mx-auto max-w-2xl">
       <Link href="/consultations" className="text-xs text-slate-500 hover:underline">
-        ← PhD Advisor
+        ← M&amp;E Advisor
       </Link>
       <h1 className="mt-1 text-2xl font-semibold tracking-tight">Ask a question</h1>
       <p className="mt-1 text-sm text-slate-600">

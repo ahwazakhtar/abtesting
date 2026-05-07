@@ -12,18 +12,17 @@ export default function DocReviewPage() {
   const [review, setReview] = useState<DocReview | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // Editing state
   const [editing, setEditing] = useState(false);
   const [editDraft, setEditDraft] = useState("");
   const [saving, setSaving] = useState(false);
 
-  // Iteration state
   const [iterating, setIterating] = useState(false);
   const [feedback, setFeedback] = useState("");
   const [iterateBusy, setIterateBusy] = useState(false);
 
-  // Regenerate state
   const [regenerating, setRegenerating] = useState(false);
+
+  const [activeTab, setActiveTab] = useState<"technical" | "simple">("technical");
 
   useEffect(() => {
     fetch(`/api/doc-reviews/${id}`)
@@ -100,7 +99,7 @@ export default function DocReviewPage() {
 
   return (
     <div className="mx-auto max-w-3xl">
-      <Link href="/doc-reviews" className="text-xs text-slate-500 hover:underline">
+      <Link href="/doc-reviews" className="text-xs hover:underline" style={{ color: "var(--fg-4)" }}>
         ← Doc Review
       </Link>
 
@@ -113,7 +112,8 @@ export default function DocReviewPage() {
                 href={review.docUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="mt-0.5 block truncate text-xs text-slate-400 hover:text-slate-600"
+                className="mt-0.5 block truncate text-xs hover:underline"
+                style={{ color: "var(--fg-4)" }}
               >
                 {review.docUrl}
               </a>
@@ -128,24 +128,26 @@ export default function DocReviewPage() {
                 </button>
                 <button
                   onClick={startEdit}
-                  className="rounded border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-700 hover:border-slate-400"
+                  className="rounded border px-3 py-1.5 text-xs font-medium transition"
+                  style={{ borderColor: "var(--border)", color: "var(--fg-2)" }}
                 >
                   Edit manually
                 </button>
                 <button
                   onClick={regenerate}
                   disabled={regenerating}
-                  className="rounded border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-700 hover:border-slate-400 disabled:opacity-60"
+                  className="rounded border px-3 py-1.5 text-xs font-medium transition disabled:opacity-60"
+                  style={{ borderColor: "var(--border)", color: "var(--fg-2)" }}
                 >
                   {regenerating ? "Regenerating…" : "Regenerate"}
                 </button>
               </div>
             )}
           </div>
-          <p className="mt-1 text-xs text-slate-500">
+          <p className="mt-1 text-xs" style={{ color: "var(--fg-4)" }}>
             Reviewed {new Date(review.updatedAt).toLocaleString()}
             {review.history && review.history.length > 0 && (
-              <span className="ml-2 text-slate-400">
+              <span className="ml-2" style={{ color: "var(--fg-4)" }}>
                 · {review.history.length} prior version{review.history.length !== 1 ? "s" : ""}
               </span>
             )}
@@ -154,17 +156,20 @@ export default function DocReviewPage() {
       )}
 
       {error && (
-        <div className="mt-4 rounded bg-red-50 px-3 py-2 text-sm text-red-700">{error}</div>
+        <div className="mt-4 rounded px-3 py-2 text-sm text-red-700 bg-red-50 dark:bg-red-950 dark:text-red-300">
+          {error}
+        </div>
       )}
 
       {/* Iterate panel */}
       {iterating && (
         <form
           onSubmit={submitIteration}
-          className="mt-6 rounded-lg border border-blue-200 bg-blue-50 p-5"
+          className="mt-6 rounded-lg border p-5"
+          style={{ borderColor: "var(--border)", background: "var(--surface)" }}
         >
-          <h2 className="text-sm font-semibold text-blue-900">Iterate on review</h2>
-          <p className="mt-1 text-xs text-blue-700">
+          <h2 className="text-sm font-semibold" style={{ color: "var(--fg)" }}>Iterate on review</h2>
+          <p className="mt-1 text-xs" style={{ color: "var(--fg-3)" }}>
             Describe what changed in the document, provide corrections, or give the reviewer
             new context. The existing review will be updated and saved to history.
           </p>
@@ -173,8 +178,9 @@ export default function DocReviewPage() {
             onChange={(e) => setFeedback(e.target.value)}
             rows={5}
             autoFocus
-            placeholder="e.g. The authors revised the power calculation to use ICC = 0.15 and added an attrition buffer of 20%. The analysis plan now pre-specifies the omnibus F-test before pairwise comparisons."
-            className="mt-3 w-full rounded border border-blue-300 bg-white px-3 py-2 font-mono text-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+            placeholder="e.g. The authors revised the power calculation to use ICC = 0.15 and added an attrition buffer of 20%."
+            className="mt-3 w-full rounded border px-3 py-2 font-mono text-sm focus:outline-none focus:ring-1 focus:ring-accent"
+            style={{ borderColor: "var(--border)", background: "var(--surface)", color: "var(--fg)" }}
           />
           <div className="mt-3 flex gap-2">
             <button
@@ -187,7 +193,8 @@ export default function DocReviewPage() {
             <button
               type="button"
               onClick={() => { setIterating(false); setFeedback(""); }}
-              className="rounded border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:border-slate-400"
+              className="rounded border px-4 py-2 text-sm font-medium transition"
+              style={{ borderColor: "var(--border)", color: "var(--fg-2)" }}
             >
               Cancel
             </button>
@@ -197,13 +204,38 @@ export default function DocReviewPage() {
 
       {/* Current review */}
       {review && (
-        <div className="mt-6 rounded-lg border border-amber-200 bg-amber-50">
-          <div className="flex items-center gap-2 border-b border-amber-200 px-4 py-3">
-            <span className="text-sm font-semibold text-amber-900">PhD Economist Review</span>
+        <div className="mt-6 rounded-lg border" style={{ borderColor: "var(--amber-border)", background: "var(--amber-bg)" }}>
+          <div className="flex items-center gap-2 border-b px-4 py-3" style={{ borderColor: "var(--amber-border)" }}>
+            <span className="text-sm font-semibold" style={{ color: "var(--amber-heading)" }}>
+              M&amp;E Review
+            </span>
             {review.history && review.history.length > 0 && (
-              <span className="ml-1 rounded-full bg-amber-200 px-2 py-0.5 text-xs font-medium text-amber-800">
+              <span className="ml-1 rounded-full px-2 py-0.5 text-xs font-medium"
+                style={{ background: "var(--amber-border)", color: "var(--amber-heading)" }}>
                 v{review.history.length + 1}
               </span>
+            )}
+            {!editing && (
+              <div className="ml-auto flex gap-1">
+                <button
+                  onClick={() => setActiveTab("technical")}
+                  className={`rounded px-2.5 py-1 text-xs font-medium transition ${
+                    activeTab === "technical" ? "bg-amber-600 text-white" : ""
+                  }`}
+                  style={activeTab !== "technical" ? { color: "var(--amber-text)" } : {}}
+                >
+                  Technical
+                </button>
+                <button
+                  onClick={() => setActiveTab("simple")}
+                  className={`rounded px-2.5 py-1 text-xs font-medium transition ${
+                    activeTab === "simple" ? "bg-amber-600 text-white" : ""
+                  }`}
+                  style={activeTab !== "simple" ? { color: "var(--amber-text)" } : {}}
+                >
+                  Explain in simple terms
+                </button>
+              </div>
             )}
           </div>
           <div className="px-4 py-4">
@@ -213,7 +245,8 @@ export default function DocReviewPage() {
                   value={editDraft}
                   onChange={(e) => setEditDraft(e.target.value)}
                   rows={30}
-                  className="w-full rounded border border-amber-300 bg-white px-3 py-2 font-mono text-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+                  className="w-full rounded border px-3 py-2 font-mono text-sm focus:outline-none focus:ring-1 focus:ring-accent"
+                  style={{ borderColor: "var(--amber-border)", background: "var(--surface)", color: "var(--fg)" }}
                   autoFocus
                 />
                 <div className="flex gap-2">
@@ -226,15 +259,23 @@ export default function DocReviewPage() {
                   </button>
                   <button
                     onClick={() => setEditing(false)}
-                    className="rounded border border-slate-300 px-3 py-1.5 text-xs text-slate-600 hover:border-slate-400"
+                    className="rounded border px-3 py-1.5 text-xs transition"
+                    style={{ borderColor: "var(--border)", color: "var(--fg-3)" }}
                   >
                     Cancel
                   </button>
                 </div>
               </div>
-            ) : (
-              <div className="prose prose-sm max-w-none prose-headings:text-amber-900 prose-headings:font-semibold prose-strong:text-amber-900">
+            ) : activeTab === "technical" ? (
+              <div className="prose prose-sm max-w-none prose-headings:font-semibold">
                 <Markdown>{review.review}</Markdown>
+              </div>
+            ) : (
+              <div className="prose prose-sm max-w-none">
+                <p className="mb-3 text-xs font-medium uppercase tracking-wide" style={{ color: "var(--amber-text)" }}>
+                  Plain-language summary for non-specialist readers
+                </p>
+                <Markdown>{review.reviewSimplified ?? "(No plain-language explanation available. Regenerate the review to get one.)"}</Markdown>
               </div>
             )}
           </div>
@@ -244,25 +285,25 @@ export default function DocReviewPage() {
       {/* Version history */}
       {review?.history && review.history.length > 0 && (
         <div className="mt-6">
-          <details className="rounded-lg border border-slate-200 bg-white">
-            <summary className="cursor-pointer px-4 py-3 text-sm font-medium text-slate-700">
+          <details className="rounded-lg border" style={{ borderColor: "var(--border)", background: "var(--surface)" }}>
+            <summary className="cursor-pointer px-4 py-3 text-sm font-medium" style={{ color: "var(--fg-2)" }}>
               Review history ({review.history.length} earlier version{review.history.length !== 1 ? "s" : ""})
             </summary>
-            <div className="divide-y divide-slate-100">
+            <div className="divide-y" style={{ borderColor: "var(--border)" }}>
               {[...review.history].reverse().map((v, i) => (
                 <div key={i} className="px-4 py-4">
                   <div className="mb-2 flex items-baseline justify-between">
-                    <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                    <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--fg-4)" }}>
                       v{review.history!.length - i} — {new Date(v.createdAt).toLocaleString()}
                     </span>
                   </div>
                   <details className="mb-3">
-                    <summary className="cursor-pointer text-xs text-slate-500 hover:text-slate-700">
+                    <summary className="cursor-pointer text-xs hover:underline" style={{ color: "var(--fg-4)" }}>
                       Feedback that triggered this update
                     </summary>
-                    <pre className="mt-1 whitespace-pre-wrap font-mono text-xs text-slate-600">{v.feedback}</pre>
+                    <pre className="mt-1 whitespace-pre-wrap font-mono text-xs" style={{ color: "var(--fg-3)" }}>{v.feedback}</pre>
                   </details>
-                  <div className="prose prose-sm max-w-none text-slate-600">
+                  <div className="prose prose-sm max-w-none" style={{ color: "var(--fg-3)" }}>
                     <Markdown>{v.review}</Markdown>
                   </div>
                 </div>
@@ -274,11 +315,11 @@ export default function DocReviewPage() {
 
       {/* Raw document content */}
       {review && (
-        <details className="mt-6 rounded border border-slate-200 bg-white">
-          <summary className="cursor-pointer px-4 py-3 text-sm font-medium text-slate-700">
+        <details className="mt-6 rounded border" style={{ borderColor: "var(--border)", background: "var(--surface)" }}>
+          <summary className="cursor-pointer px-4 py-3 text-sm font-medium" style={{ color: "var(--fg-2)" }}>
             Document content (fetched plain text)
           </summary>
-          <pre className="max-h-96 overflow-y-auto px-4 pb-4 font-mono text-xs text-slate-600 whitespace-pre-wrap">
+          <pre className="max-h-96 overflow-y-auto px-4 pb-4 font-mono text-xs whitespace-pre-wrap" style={{ color: "var(--fg-3)" }}>
             {review.docContent}
           </pre>
         </details>

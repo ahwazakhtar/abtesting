@@ -12,7 +12,7 @@ export default async function DocReviewsPage() {
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Doc Review</h1>
           <p className="mt-1 text-sm text-slate-600">
-            Paste a Google Doc link for a PhD-level methodology critique. Works on concept
+            Paste a Google Doc link for an M&amp;E methodology critique. Works on concept
             notes, study protocols, analysis plans, and evaluation reports.
           </p>
         </div>

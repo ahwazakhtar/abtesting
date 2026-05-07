@@ -1,15 +1,10 @@
 // JSON-file storage. Each experiment lives in data/experiments/<id>/, with a
 // meta.json and versions/<n>.json files. An index.json at the top of /data
 // lists all experiments for fast dashboard reads.
-//
-// Caveat: this writes to the local filesystem. It works great when running
-// `next dev` or `next start` on a long-lived Node server (local, Render with
-// a persistent disk, Fly, a VPS). On Vercel's serverless runtime, writes
-// don't persist — see README for migration paths.
 
 import fs from "node:fs/promises";
 import path from "node:path";
-import { Experiment, ExperimentMeta, Version } from "./types";
+import { Asset, Comment, Experiment, ExperimentMeta, Version } from "./types";
 
 const DATA_DIR = path.join(process.cwd(), "data");
 const EXPERIMENTS_DIR = path.join(DATA_DIR, "experiments");
@@ -59,6 +54,14 @@ function versionFile(id: string, n: number) {
   return path.join(expDir(id), "versions", `${n}.json`);
 }
 
+function assetsFile(id: string) {
+  return path.join(expDir(id), "assets.json");
+}
+
+function commentsFile(id: string) {
+  return path.join(expDir(id), "comments.json");
+}
+
 export async function getExperiment(id: string): Promise<Experiment | null> {
   await ensureDirs();
   try {
@@ -72,7 +75,12 @@ export async function getExperiment(id: string): Promise<Experiment | null> {
         // skip missing version files gracefully
       }
     }
-    return { ...meta, versions };
+    // Load assets and comments if present
+    let assets: Asset[] = [];
+    let comments: Comment[] = [];
+    try { assets = await readJson<Asset[]>(assetsFile(id)); } catch { /* none yet */ }
+    try { comments = await readJson<Comment[]>(commentsFile(id)); } catch { /* none yet */ }
+    return { ...meta, versions, assets, comments };
   } catch {
     return null;
   }
@@ -123,13 +131,59 @@ export async function appendVersion(id: string, version: Version): Promise<Exper
   return newMeta;
 }
 
-export async function patchVersionReview(id: string, versionNumber: number, review: string) {
+export async function patchVersionReview(
+  id: string,
+  versionNumber: number,
+  meReview: string,
+  meReviewSimplified: string,
+) {
   const v = await readJson<Version>(versionFile(id, versionNumber));
-  await writeJson(versionFile(id, versionNumber), { ...v, phdReview: review });
+  await writeJson(versionFile(id, versionNumber), { ...v, meReview, meReviewSimplified });
 }
 
 export async function deleteExperiment(id: string) {
   await fs.rm(expDir(id), { recursive: true, force: true });
   const idx = await listExperiments();
   await writeIndex(idx.filter((e) => e.id !== id));
+}
+
+// ─── Assets ──────────────────────────────────────────────────────────────────
+
+export async function getAssets(id: string): Promise<Asset[]> {
+  try {
+    return await readJson<Asset[]>(assetsFile(id));
+  } catch {
+    return [];
+  }
+}
+
+export async function addAsset(id: string, asset: Asset): Promise<Asset[]> {
+  const assets = await getAssets(id);
+  const updated = [...assets, asset];
+  await writeJson(assetsFile(id), updated);
+  return updated;
+}
+
+export async function deleteAsset(id: string, assetId: string): Promise<Asset[]> {
+  const assets = await getAssets(id);
+  const updated = assets.filter((a) => a.id !== assetId);
+  await writeJson(assetsFile(id), updated);
+  return updated;
+}
+
+// ─── Comments ─────────────────────────────────────────────────────────────────
+
+export async function getComments(id: string): Promise<Comment[]> {
+  try {
+    return await readJson<Comment[]>(commentsFile(id));
+  } catch {
+    return [];
+  }
+}
+
+export async function addComment(id: string, comment: Comment): Promise<Comment[]> {
+  const comments = await getComments(id);
+  const updated = [...comments, comment];
+  await writeJson(commentsFile(id), updated);
+  return updated;
 }

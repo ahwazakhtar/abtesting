@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getDocReview, updateDocReview } from "@/lib/doc-review-storage";
 import { getClient } from "@/lib/openai";
-import { docReviewIteratePrompt } from "@/lib/doc-review-prompts";
+import { docReviewIteratePrompt, parseReviewSections } from "@/lib/doc-review-prompts";
 import { DocReviewVersion } from "@/lib/types";
 
 export const runtime = "nodejs";
@@ -9,9 +9,6 @@ export const dynamic = "force-dynamic";
 
 const REVIEW_MODEL = process.env.OPENAI_REVIEW_MODEL || "gpt-4o";
 
-// POST /api/doc-reviews/[id]/iterate
-// Body: { feedback: string }
-// Updates the review based on new feedback, preserving the previous version in history.
 export async function POST(req: Request, ctx: { params: { id: string } }) {
   const r = await getDocReview(ctx.params.id);
   if (!r) return NextResponse.json({ error: "not found" }, { status: 404 });
@@ -27,7 +24,7 @@ export async function POST(req: Request, ctx: { params: { id: string } }) {
     feedback,
   });
 
-  let newReview = "";
+  let rawReview = "";
   try {
     const client = getClient();
     const completion = await client.chat.completions.create({
@@ -37,19 +34,23 @@ export async function POST(req: Request, ctx: { params: { id: string } }) {
         { role: "user", content: user },
       ],
     });
-    newReview = completion.choices[0]?.message?.content?.trim() ?? "";
+    rawReview = completion.choices[0]?.message?.content?.trim() ?? "";
   } catch (e) {
     return NextResponse.json({ error: `LLM call failed: ${(e as Error).message}` }, { status: 500 });
   }
 
+  const { technical, simplified } = parseReviewSections(rawReview);
+
   const snapshot: DocReviewVersion = {
     review: r.review,
+    reviewSimplified: r.reviewSimplified,
     feedback,
     createdAt: new Date().toISOString(),
   };
 
   const updated = await updateDocReview(ctx.params.id, {
-    review: newReview,
+    review: technical,
+    reviewSimplified: simplified,
     history: [...(r.history ?? []), snapshot],
   });
 

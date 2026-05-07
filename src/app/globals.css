@@ -4,12 +4,44 @@
 
 :root {
   color-scheme: light;
+  --bg: #fafaf9;
+  --surface: #ffffff;
+  --surface-2: #f8fafc;
+  --border: #e2e8f0;
+  --border-2: #cbd5e1;
+  --fg: #0f172a;
+  --fg-2: #334155;
+  --fg-3: #475569;
+  --fg-4: #64748b;
+  --amber-bg: #fffbeb;
+  --amber-border: #fde68a;
+  --amber-text: #78350f;
+  --amber-heading: #92400e;
+  --code-bg: #f1f5f9;
+}
+
+.dark {
+  color-scheme: dark;
+  --bg: #0f172a;
+  --surface: #1e293b;
+  --surface-2: #0f172a;
+  --border: #334155;
+  --border-2: #475569;
+  --fg: #f1f5f9;
+  --fg-2: #cbd5e1;
+  --fg-3: #94a3b8;
+  --fg-4: #64748b;
+  --amber-bg: #1c1408;
+  --amber-border: #78350f;
+  --amber-text: #fcd34d;
+  --amber-heading: #fbbf24;
+  --code-bg: #1e293b;
 }
 
 html,
 body {
-  background: #fafaf9;
-  color: #0f172a;
+  background: var(--bg);
+  color: var(--fg);
 }
 
 /* Markdown rendering inside the app — keep it tight, document-like. */
@@ -32,7 +64,7 @@ body {
 .prose-md ol { margin: 0.4em 0 0.4em 1.4em; }
 .prose-md li { margin: 0.15em 0; }
 .prose-md code {
-  background: #f1f5f9;
+  background: var(--code-bg);
   padding: 0.05em 0.3em;
   border-radius: 3px;
   font-size: 0.85em;
@@ -53,17 +85,24 @@ body {
 }
 .prose-md th,
 .prose-md td {
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--border);
   padding: 0.35em 0.55em;
   text-align: left;
 }
-.prose-md th { background: #f8fafc; font-weight: 600; }
+.prose-md th { background: var(--surface-2); font-weight: 600; }
 .prose-md blockquote {
-  border-left: 3px solid #cbd5e1;
+  border-left: 3px solid var(--border-2);
   padding-left: 0.8em;
-  color: #475569;
+  color: var(--fg-3);
   margin: 0.6em 0;
 }
 
 .diff-add { background: #dcfce7; color: #14532d; }
 .diff-del { background: #fee2e2; color: #7f1d1d; text-decoration: line-through; }
+
+.dark .diff-add { background: #14532d; color: #bbf7d0; }
+.dark .diff-del { background: #7f1d1d; color: #fecaca; }
+
+/* Mention highlight */
+.mention { color: #2563eb; font-weight: 500; }
+.dark .mention { color: #60a5fa; }
