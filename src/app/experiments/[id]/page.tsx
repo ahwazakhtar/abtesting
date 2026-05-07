@@ -25,12 +25,22 @@ export default async function ExperimentPage({ params }: { params: { id: string 
               <p className="mt-1 max-w-2xl text-sm text-slate-600">{exp.description}</p>
             )}
           </div>
-          <Link
-            href={`/experiments/${exp.id}/iterate`}
-            className="shrink-0 rounded bg-accent px-3 py-2 text-sm font-medium text-white hover:bg-blue-700"
-          >
-            Iterate on plan
-          </Link>
+          <div className="flex items-center gap-2 shrink-0">
+            {exp.id === "digital-coach-promotion" && (
+              <Link
+                href={`/experiments/${exp.id}/analytics`}
+                className="rounded border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+              >
+                Live analytics
+              </Link>
+            )}
+            <Link
+              href={`/experiments/${exp.id}/iterate`}
+              className="rounded bg-accent px-3 py-2 text-sm font-medium text-white hover:bg-blue-700"
+            >
+              Iterate on plan
+            </Link>
+          </div>
         </div>
 
         <div className="mb-3 text-xs uppercase tracking-wide text-slate-500">
