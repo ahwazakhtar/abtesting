@@ -8,11 +8,16 @@ const config: Config = {
       colors: {
         ink: "#0f172a",
         paper: "#fafaf9",
-        accent: "#2563eb",
+        accent: "var(--accent)",
+        "accent-2": "var(--accent-2)",
       },
       fontFamily: {
         sans: ["ui-sans-serif", "system-ui", "-apple-system", "Segoe UI", "Roboto", "sans-serif"],
         mono: ["ui-monospace", "SFMono-Regular", "Menlo", "monospace"],
+      },
+      borderRadius: {
+        "2xl": "1rem",
+        "3xl": "1.25rem",
       },
     },
   },

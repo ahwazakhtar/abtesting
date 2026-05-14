@@ -4,38 +4,69 @@
 
 :root {
   color-scheme: light;
-  --bg: #fafaf9;
+  --bg: #f6f7fb;
   --surface: #ffffff;
-  --surface-2: #f8fafc;
-  --border: #e2e8f0;
-  --border-2: #cbd5e1;
+  --surface-2: #f1f3f9;
+  --surface-3: #e8ebf3;
+  --border: #e4e7ef;
+  --border-2: #d1d5e0;
   --fg: #0f172a;
   --fg-2: #334155;
-  --fg-3: #475569;
-  --fg-4: #64748b;
+  --fg-3: #4b5566;
+  --fg-4: #6b7280;
+  --accent: #4f46e5;
+  --accent-2: #7c3aed;
+  --accent-soft: rgba(79, 70, 229, 0.08);
+  --success: #16a34a;
+  --success-soft: rgba(22, 163, 74, 0.1);
+  --warning: #d97706;
+  --warning-soft: rgba(217, 119, 6, 0.1);
+  --danger: #dc2626;
+  --danger-soft: rgba(220, 38, 38, 0.1);
   --amber-bg: #fffbeb;
   --amber-border: #fde68a;
   --amber-text: #78350f;
   --amber-heading: #92400e;
   --code-bg: #f1f5f9;
+  --hero-from: #1f1d35;
+  --hero-to: #312e62;
+  --hero-fg: #f8fafc;
+  --hero-muted: #c7c9e3;
+  --ring: 0 0 0 1px var(--border);
+  --shadow-card: 0 1px 2px rgba(15, 23, 42, 0.04), 0 1px 1px rgba(15, 23, 42, 0.03);
 }
 
 .dark {
   color-scheme: dark;
-  --bg: #0f172a;
-  --surface: #1e293b;
-  --surface-2: #0f172a;
-  --border: #334155;
-  --border-2: #475569;
+  --bg: #0b0d1a;
+  --surface: #141729;
+  --surface-2: #1b1f37;
+  --surface-3: #232845;
+  --border: #262b46;
+  --border-2: #343a5a;
   --fg: #f1f5f9;
   --fg-2: #cbd5e1;
   --fg-3: #94a3b8;
-  --fg-4: #64748b;
+  --fg-4: #6b7280;
+  --accent: #818cf8;
+  --accent-2: #a78bfa;
+  --accent-soft: rgba(129, 140, 248, 0.15);
+  --success: #4ade80;
+  --success-soft: rgba(74, 222, 128, 0.12);
+  --warning: #fbbf24;
+  --warning-soft: rgba(251, 191, 36, 0.12);
+  --danger: #f87171;
+  --danger-soft: rgba(248, 113, 113, 0.12);
   --amber-bg: #1c1408;
   --amber-border: #78350f;
   --amber-text: #fcd34d;
   --amber-heading: #fbbf24;
   --code-bg: #1e293b;
+  --hero-from: #1a1f3d;
+  --hero-to: #2c1f5b;
+  --hero-fg: #f8fafc;
+  --hero-muted: #b6b8d6;
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.03);
 }
 
 html,
@@ -43,6 +74,44 @@ body {
   background: var(--bg);
   color: var(--fg);
 }
+
+body {
+  font-feature-settings: "ss01", "cv11";
+}
+
+/* Reusable layout helpers */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: var(--shadow-card);
+}
+
+.card-hover {
+  transition: border-color 150ms ease, transform 150ms ease, box-shadow 150ms ease;
+}
+.card-hover:hover {
+  border-color: var(--border-2);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px -8px rgba(15, 23, 42, 0.15);
+}
+
+.hero-card {
+  background: linear-gradient(135deg, var(--hero-from), var(--hero-to));
+  color: var(--hero-fg);
+  border-radius: 20px;
+  position: relative;
+  overflow: hidden;
+}
+.hero-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(800px 200px at 90% 110%, rgba(124, 58, 237, 0.45), transparent 70%),
+              radial-gradient(500px 160px at 10% -20%, rgba(56, 189, 248, 0.18), transparent 70%);
+  pointer-events: none;
+}
+.hero-card > * { position: relative; z-index: 1; }
 
 /* Markdown rendering inside the app — keep it tight, document-like. */
 .prose-md {
@@ -104,5 +173,9 @@ body {
 .dark .diff-del { background: #7f1d1d; color: #fecaca; }
 
 /* Mention highlight */
-.mention { color: #2563eb; font-weight: 500; }
-.dark .mention { color: #60a5fa; }
+.mention { color: var(--accent); font-weight: 500; }
+
+/* Scrollbar — subtle, app-like */
+.thin-scroll::-webkit-scrollbar { width: 8px; height: 8px; }
+.thin-scroll::-webkit-scrollbar-thumb { background: var(--border-2); border-radius: 999px; }
+.thin-scroll::-webkit-scrollbar-track { background: transparent; }

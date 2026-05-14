@@ -1,172 +1,215 @@
 import Link from "next/link";
-import { listExperiments } from "@/lib/storage";
+import { getExperiment, listExperiments } from "@/lib/storage";
 import { listConsultations } from "@/lib/consultation-storage";
 import { listDocReviews } from "@/lib/doc-review-storage";
+import { STAGE_ORDER } from "@/lib/types";
+import StatTile from "@/components/ui/StatTile";
+import ExperimentGrid, { DashboardExperiment } from "@/components/dashboard/ExperimentGrid";
+import RecentActivity, { ActivityItem } from "@/components/dashboard/RecentActivity";
+import ToolsRail from "@/components/dashboard/ToolsRail";
 
 export const dynamic = "force-dynamic";
 
+async function buildDashboardExperiments(): Promise<DashboardExperiment[]> {
+  const metas = await listExperiments();
+  const enriched = await Promise.all(
+    metas.map(async (m): Promise<DashboardExperiment> => {
+      const full = await getExperiment(m.id);
+      const current = full?.versions[full.versions.length - 1];
+      const filled = current
+        ? current.stages.filter((s) => (s.content ?? "").trim().length > 0).length
+        : 0;
+      const total = STAGE_ORDER.length;
+      const progress = Math.round((filled / total) * 100);
+
+      let status: DashboardExperiment["status"] = "Drafting";
+      if (current?.meReview || current?.phdReview) status = "Reviewing";
+      else if (m.currentVersion >= 3) status = "In progress";
+      else if (m.currentVersion >= 2) status = "Iterating";
+
+      return {
+        ...m,
+        progress,
+        status,
+        filledStages: filled,
+        totalStages: total,
+      };
+    }),
+  );
+  return enriched;
+}
+
 export default async function DashboardPage() {
-  const [exps, consultations, docReviews] = await Promise.all([
-    listExperiments(),
+  const [experiments, consultations, docReviews] = await Promise.all([
+    buildDashboardExperiments(),
     listConsultations(),
     listDocReviews(),
   ]);
+
+  const avgProgress = experiments.length === 0
+    ? 0
+    : Math.round(experiments.reduce((acc, e) => acc + e.progress, 0) / experiments.length);
+
+  const activity: ActivityItem[] = [
+    ...experiments.map((e): ActivityItem => ({
+      id: e.id,
+      kind: "Experiment",
+      title: e.title,
+      updatedAt: e.updatedAt,
+      href: `/experiments/${e.id}`,
+    })),
+    ...consultations.map((c): ActivityItem => ({
+      id: c.id,
+      kind: "Advisor",
+      title: c.title,
+      updatedAt: c.updatedAt,
+      href: `/consultations/${c.id}`,
+    })),
+    ...docReviews.map((r): ActivityItem => ({
+      id: r.id,
+      kind: "Doc review",
+      title: r.docTitle,
+      updatedAt: r.updatedAt,
+      href: `/doc-reviews/${r.id}`,
+    })),
+  ]
+    .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
+    .slice(0, 6);
+
   return (
-    <div>
-      <div className="mb-6">
-        <h1 className="text-2xl font-semibold tracking-tight">Experimentation Playground</h1>
-        <p className="mt-1 text-sm" style={{ color: "var(--fg-3)" }}>
-          Plans evolve. Track every version, ground every change in a reason.
-        </p>
-      </div>
-
-      <details
-        open={exps.length === 0}
-        className="group mb-6 rounded-lg border p-5 open:pb-6"
-        style={{ borderColor: "var(--border)", background: "var(--surface)" }}
-      >
-        <summary className="flex cursor-pointer list-none items-center justify-between">
-          <span className="font-semibold">User guide</span>
-          <span className="text-xs group-open:hidden" style={{ color: "var(--fg-4)" }}>Show</span>
-          <span className="hidden text-xs group-open:inline" style={{ color: "var(--fg-4)" }}>Hide</span>
-        </summary>
-
-        <div className="mt-4 space-y-4 text-sm" style={{ color: "var(--fg-2)" }}>
-          <p>
-            This app turns an A/B test plan into a living document. You draft a first
-            version from a brief, then iterate by pasting feedback or meeting notes —
-            the model proposes targeted edits you review as a diff before accepting
-            them as the next version.
-          </p>
-
-          <div>
-            <p className="mb-2 text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--fg-4)" }}>
-              Workflow
+    <div className="space-y-8">
+      {/* Hero */}
+      <section className="hero-card p-6 md:p-8">
+        <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+          <div className="max-w-xl">
+            <p className="text-xs font-medium uppercase tracking-wider" style={{ color: "var(--hero-muted)" }}>
+              Active workspace
             </p>
-            <ol className="list-decimal space-y-1.5 pl-5">
-              <li>
-                <strong>Create an experiment.</strong> Click{" "}
-                <em>New experiment</em>, give it a title and a short description
-                (paste a concept note if you have one). The model drafts{" "}
-                <strong>v1</strong> across all stages of the plan.
-              </li>
-              <li>
-                <strong>Review the current plan.</strong> Open an experiment to see
-                its latest version as a list of stages (hypothesis, design, sample,
-                analysis, and so on).
-              </li>
-              <li>
-                <strong>Iterate.</strong> Click <em>Iterate on plan</em> and paste
-                feedback, meeting notes, or a manual edit request. The model returns
-                a proposed revision with a summary and rationale.
-              </li>
-              <li>
-                <strong>Accept or discard.</strong> Review the diff side-by-side.
-                Accepting saves it as the next numbered version; the old version
-                stays in history.
-              </li>
-              <li>
-                <strong>Walk the history.</strong> Use the version timeline on the
-                experiment page to jump to any prior version or diff two versions.
-              </li>
-            </ol>
+            <h1 className="mt-1 text-2xl md:text-3xl font-semibold tracking-tight">
+              Welcome back, Researcher
+            </h1>
+            <p className="mt-2 text-sm md:text-base" style={{ color: "var(--hero-muted)" }}>
+              Plan smarter. Test rigorously. Learn continuously — every version of every plan grounded in a reason.
+            </p>
           </div>
-
-          <div>
-            <p className="mb-2 text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--fg-4)" }}>
-              Tips
-            </p>
-            <ul className="list-disc space-y-1.5 pl-5">
-              <li>
-                Use <em>Meeting notes</em> for raw, unstructured input — the model
-                will figure out which stages to touch.
-              </li>
-              <li>
-                Use <em>Manual edit request</em> when you know exactly what you
-                want changed (e.g. &ldquo;switch the analysis to cluster-robust
-                SEs&rdquo;).
-              </li>
-              <li>
-                Every version records the trigger that produced it, so the
-                &ldquo;why&rdquo; behind each change stays with the plan.
-              </li>
-            </ul>
+          <div className="flex flex-wrap items-center gap-2">
+            <Link
+              href="/experiments/new"
+              className="rounded-xl bg-white px-4 py-2 text-sm font-semibold text-slate-900 shadow-sm transition hover:bg-slate-100"
+            >
+              + New experiment
+            </Link>
+            <Link
+              href="/consultations/new"
+              className="rounded-xl border border-white/20 px-4 py-2 text-sm font-medium text-white transition hover:bg-white/10"
+            >
+              Ask the M&amp;E advisor
+            </Link>
           </div>
         </div>
-      </details>
+      </section>
 
-      {/* Quick-access panels for the other two modules */}
-      <div className="mb-8 grid gap-4 sm:grid-cols-2">
-        <Link
-          href="/consultations"
-          className="flex flex-col rounded-lg border p-5 transition hover:shadow-sm"
-          style={{ borderColor: "var(--border)", background: "var(--surface)" }}
-        >
-          <div className="flex items-baseline justify-between">
-            <span className="font-semibold">M&amp;E Advisor</span>
-            <span className="text-xs" style={{ color: "var(--fg-4)" }}>{consultations.length} sessions</span>
-          </div>
-          <p className="mt-1 text-sm" style={{ color: "var(--fg-3)" }}>
-            One-off methodology questions — IRR setup, power, identification, mediation.
-            The advisor asks follow-up questions when it needs more context.
-          </p>
-          <span className="mt-3 text-xs font-medium text-accent">Ask a question →</span>
-        </Link>
-        <Link
-          href="/doc-reviews"
-          className="flex flex-col rounded-lg border p-5 transition hover:shadow-sm"
-          style={{ borderColor: "var(--border)", background: "var(--surface)" }}
-        >
-          <div className="flex items-baseline justify-between">
-            <span className="font-semibold">Doc Review</span>
-            <span className="text-xs" style={{ color: "var(--fg-4)" }}>{docReviews.length} reviews</span>
-          </div>
-          <p className="mt-1 text-sm" style={{ color: "var(--fg-3)" }}>
-            Paste a Google Doc link for an M&amp;E-level critique of concept notes,
-            protocols, analysis plans, and evaluation reports.
-          </p>
-          <span className="mt-3 text-xs font-medium text-accent">Review a doc →</span>
-        </Link>
-      </div>
+      {/* Stat strip */}
+      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <StatTile
+          label="Active experiments"
+          value={experiments.length}
+          hint={`${experiments.filter((e) => e.status !== "Drafting").length} past v1`}
+          accent="indigo"
+          icon={
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} className="h-5 w-5">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 3v6L4 19a2 2 0 0 0 1.8 2.9h12.4A2 2 0 0 0 20 19L15 9V3M9 3h6" />
+            </svg>
+          }
+        />
+        <StatTile
+          label="Advisor sessions"
+          value={consultations.length}
+          hint="Methodology Q&A"
+          accent="violet"
+          icon={
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} className="h-5 w-5">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+            </svg>
+          }
+        />
+        <StatTile
+          label="Docs reviewed"
+          value={docReviews.length}
+          hint="Concept notes, protocols"
+          accent="emerald"
+          icon={
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} className="h-5 w-5">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z M14 2v6h6" />
+            </svg>
+          }
+        />
+        <StatTile
+          label="Avg plan progress"
+          value={`${avgProgress}%`}
+          hint="Stages with content"
+          accent="amber"
+          icon={
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} className="h-5 w-5">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 3v18h18 M7 15l4-4 4 4 5-7" />
+            </svg>
+          }
+        />
+      </section>
 
-      {exps.length === 0 ? (
-        <div className="rounded-lg border border-dashed p-10 text-center"
-          style={{ borderColor: "var(--border-2)", background: "var(--surface)" }}>
-          <p style={{ color: "var(--fg-3)" }}>No experiments yet.</p>
-          <Link
-            href="/experiments/new"
-            className="mt-4 inline-block rounded bg-accent px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
-          >
-            Create your first experiment
-          </Link>
-        </div>
-      ) : (
-        <ul className="grid gap-3 sm:grid-cols-2">
-          {exps.map((e) => (
-            <li key={e.id}>
+      {/* Experiments + tools split */}
+      <section className="grid gap-6 lg:grid-cols-[2fr_1fr]">
+        <div>
+          <div className="mb-3 flex items-baseline justify-between">
+            <h2 className="text-base font-semibold tracking-tight" style={{ color: "var(--fg)" }}>
+              Your experiments
+            </h2>
+            <Link href="/experiments/new" className="text-xs font-medium" style={{ color: "var(--accent)" }}>
+              View all →
+            </Link>
+          </div>
+          {experiments.length === 0 ? (
+            <div
+              className="card flex flex-col items-center justify-center p-12 text-center"
+              style={{ borderStyle: "dashed" }}
+            >
+              <p style={{ color: "var(--fg-3)" }}>No experiments yet.</p>
               <Link
-                href={`/experiments/${e.id}`}
-                className="block rounded-lg border p-5 transition hover:shadow-sm"
-                style={{ borderColor: "var(--border)", background: "var(--surface)" }}
+                href="/experiments/new"
+                className="mt-4 inline-block rounded-xl px-4 py-2 text-sm font-medium text-white"
+                style={{ background: "linear-gradient(135deg, var(--accent), var(--accent-2))" }}
               >
-                <div className="flex items-start justify-between gap-3">
-                  <h2 className="font-semibold">{e.title}</h2>
-                  <span className="shrink-0 rounded-full px-2 py-0.5 text-xs font-medium"
-                    style={{ background: "var(--surface-2)", color: "var(--fg-3)" }}>
-                    v{e.currentVersion}
-                  </span>
-                </div>
-                {e.description && (
-                  <p className="mt-2 line-clamp-3 text-sm" style={{ color: "var(--fg-3)" }}>{e.description}</p>
-                )}
-                <p className="mt-3 text-xs" style={{ color: "var(--fg-4)" }}>
-                  Updated {new Date(e.updatedAt).toLocaleDateString()}
-                </p>
+                Create your first experiment
               </Link>
-            </li>
-          ))}
-        </ul>
-      )}
+            </div>
+          ) : (
+            <ExperimentGrid experiments={experiments} />
+          )}
+        </div>
+
+        <ToolsRail
+          tools={[
+            {
+              href: "/consultations",
+              title: "M&E Advisor",
+              description: "One-off methodology questions — IRR, power, identification.",
+              count: consultations.length,
+              cta: "Ask a question",
+              accent: "linear-gradient(135deg, #7c3aed, #a855f7)",
+            },
+            {
+              href: "/doc-reviews",
+              title: "Doc Review",
+              description: "Upload a doc for an M&E-level critique of plans and reports.",
+              count: docReviews.length,
+              cta: "Review a doc",
+              accent: "linear-gradient(135deg, #10b981, #06b6d4)",
+            },
+          ]}
+        />
+      </section>
+
+      <RecentActivity items={activity} />
     </div>
   );
 }
