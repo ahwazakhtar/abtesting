@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { getExperiment, listExperiments } from "@/lib/storage";
-import { STAGE_ORDER } from "@/lib/types";
 import ExperimentGrid, { DashboardExperiment } from "@/components/dashboard/ExperimentGrid";
 import ScopeTabs from "@/components/ScopeTabs";
 import { getCurrentUser, matchesScope, resolveScope } from "@/lib/auth";
+import { computeHealth } from "@/lib/experiment-health";
 
 export const dynamic = "force-dynamic";
 
@@ -13,16 +13,13 @@ async function enrich(): Promise<DashboardExperiment[]> {
     metas.map(async (m): Promise<DashboardExperiment> => {
       const full = await getExperiment(m.id);
       const current = full?.versions[full.versions.length - 1];
-      const filled = current
-        ? current.stages.filter((s) => (s.content ?? "").trim().length > 0).length
-        : 0;
-      const total = STAGE_ORDER.length;
-      const progress = Math.round((filled / total) * 100);
+      const health = computeHealth(current);
+      const progress = Math.round((health.filledStages / health.totalStages) * 100);
       let status: DashboardExperiment["status"] = "Drafting";
       if (current?.meReview || current?.phdReview) status = "Reviewing";
       else if (m.currentVersion >= 3) status = "In progress";
       else if (m.currentVersion >= 2) status = "Iterating";
-      return { ...m, progress, status, filledStages: filled, totalStages: total };
+      return { ...m, progress, status, health };
     }),
   );
 }

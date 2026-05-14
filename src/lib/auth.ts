@@ -18,7 +18,7 @@ export type Scope = "mine" | "org";
 
 export function resolveScope(raw: string | string[] | undefined): Scope {
   const v = Array.isArray(raw) ? raw[0] : raw;
-  return v === "org" ? "org" : "mine";
+  return v === "mine" ? "mine" : "org";
 }
 
 /**
