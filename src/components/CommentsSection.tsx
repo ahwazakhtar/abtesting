@@ -6,6 +6,7 @@ import { Comment } from "@/lib/types";
 interface Props {
   experimentId: string;
   initialComments: Comment[];
+  embedded?: boolean;
 }
 
 function renderWithMentions(text: string) {
@@ -19,7 +20,7 @@ function renderWithMentions(text: string) {
   );
 }
 
-export default function CommentsSection({ experimentId, initialComments }: Props) {
+export default function CommentsSection({ experimentId, initialComments, embedded = false }: Props) {
   const [comments, setComments] = useState<Comment[]>(initialComments);
   const [authorName, setAuthorName] = useState("");
   const [content, setContent] = useState("");
@@ -51,9 +52,20 @@ export default function CommentsSection({ experimentId, initialComments }: Props
     }
   }
 
+  const wrapperClass = embedded ? "" : "mt-6 rounded-lg border";
+  const wrapperStyle = embedded
+    ? undefined
+    : { borderColor: "var(--border)", background: "var(--surface)" };
+  const headerClass = embedded ? "pb-2" : "border-b px-4 py-3";
+  const listClass = embedded ? "divide-y" : "divide-y";
+  const formClass = embedded
+    ? "mt-3 space-y-2 border-t pt-3"
+    : "border-t px-4 py-3 space-y-2";
+  const itemPad = embedded ? "py-3" : "px-4 py-3";
+
   return (
-    <div className="mt-6 rounded-lg border" style={{ borderColor: "var(--border)", background: "var(--surface)" }}>
-      <div className="border-b px-4 py-3" style={{ borderColor: "var(--border)" }}>
+    <div className={wrapperClass} style={wrapperStyle}>
+      <div className={headerClass} style={embedded ? undefined : { borderColor: "var(--border)" }}>
         <span className="text-sm font-semibold" style={{ color: "var(--fg-2)" }}>
           Comments
         </span>
@@ -64,14 +76,14 @@ export default function CommentsSection({ experimentId, initialComments }: Props
         )}
       </div>
 
-      <div className="divide-y" style={{ borderColor: "var(--border)" }}>
+      <div className={listClass} style={{ borderColor: "var(--border)" }}>
         {comments.length === 0 && (
-          <p className="px-4 py-3 text-sm" style={{ color: "var(--fg-4)" }}>
+          <p className={`${itemPad} text-sm`} style={{ color: "var(--fg-4)" }}>
             No comments yet. Use @name to notify a colleague.
           </p>
         )}
         {comments.map((c) => (
-          <div key={c.id} className="px-4 py-3">
+          <div key={c.id} className={itemPad}>
             <div className="flex items-baseline gap-2">
               <span className="text-sm font-semibold" style={{ color: "var(--fg)" }}>
                 {c.authorName}
@@ -92,7 +104,7 @@ export default function CommentsSection({ experimentId, initialComments }: Props
         ))}
       </div>
 
-      <form onSubmit={postComment} className="border-t px-4 py-3 space-y-2" style={{ borderColor: "var(--border)" }}>
+      <form onSubmit={postComment} className={formClass} style={{ borderColor: "var(--border)" }}>
         {error && <p className="text-xs text-red-600">{error}</p>}
         {notified.length > 0 && (
           <p className="text-xs text-green-600">

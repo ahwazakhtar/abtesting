@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getExperiment } from "@/lib/storage";
 import StageList from "@/components/StageList";
@@ -7,6 +6,11 @@ import MEReviewPanel from "@/components/MEReviewPanel";
 import KeyTermsSection from "@/components/KeyTermsSection";
 import AssetsPane from "@/components/AssetsPane";
 import CommentsSection from "@/components/CommentsSection";
+import ExperimentSummaryHeader from "@/components/experiment/ExperimentSummaryHeader";
+import StatHighlights from "@/components/experiment/StatHighlights";
+import ScorecardRow from "@/components/experiment/ScorecardRow";
+import PlanAtAGlance from "@/components/experiment/PlanAtAGlance";
+import RightRail from "@/components/experiment/RightRail";
 
 export const dynamic = "force-dynamic";
 
@@ -15,78 +19,70 @@ export default async function ExperimentPage({ params }: { params: { id: string 
   if (!exp) notFound();
   const current = exp.versions[exp.versions.length - 1];
 
+  let status: "Drafting" | "Reviewing" | "Iterating" | "In progress" = "Drafting";
+  if (current.meReview || current.phdReview) status = "Reviewing";
+  else if (exp.currentVersion >= 3) status = "In progress";
+  else if (exp.currentVersion >= 2) status = "Iterating";
+
   return (
-    <div className="grid gap-8 lg:grid-cols-[1fr_320px]">
-      <div>
-        <div className="mb-6 flex items-baseline justify-between gap-4">
-          <div>
-            <Link href="/" className="text-xs hover:underline" style={{ color: "var(--fg-4)" }}>
-              ← All experiments
-            </Link>
-            <h1 className="mt-1 text-2xl font-semibold tracking-tight">{exp.title}</h1>
-            {exp.description && (
-              <p className="mt-1 max-w-2xl text-sm" style={{ color: "var(--fg-3)" }}>
-                {exp.description}
-              </p>
-            )}
-          </div>
-          <div className="flex items-center gap-2 shrink-0">
-            {exp.id === "digital-coach-promotion" && (
-              <Link
-                href={`/experiments/${exp.id}/analytics`}
-                className="rounded border px-3 py-2 text-sm font-medium transition hover:opacity-80"
-                style={{ borderColor: "var(--border)", background: "var(--surface)", color: "var(--fg-2)" }}
-              >
-                Live analytics
-              </Link>
-            )}
-            <Link
-              href={`/experiments/${exp.id}/iterate`}
-              className="rounded bg-accent px-3 py-2 text-sm font-medium text-white hover:bg-blue-700"
-            >
-              Iterate on plan
-            </Link>
-          </div>
+    <div className="space-y-6">
+      <ExperimentSummaryHeader experiment={exp} status={status} />
+
+      <StatHighlights current={current} versionCount={exp.versions.length} />
+
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
+        <div className="space-y-6 min-w-0">
+          <ScorecardRow current={current} />
+
+          <PlanAtAGlance current={current} />
+
+          <section>
+            <div className="mb-3 flex items-baseline justify-between">
+              <h2 className="text-base font-semibold tracking-tight" style={{ color: "var(--fg)" }}>
+                Plan stages
+              </h2>
+              <span className="text-xs" style={{ color: "var(--fg-4)" }}>
+                Current plan — v{current.number}
+              </span>
+            </div>
+            <StageList stages={current.stages} />
+          </section>
+
+          <KeyTermsSection keyTerms={current.meReviewKeyTerms ?? []} />
+
+          <MEReviewPanel
+            experimentId={exp.id}
+            versionNumber={current.number}
+            initialReview={current.meReview ?? current.phdReview}
+            initialReviewSimplified={current.meReviewSimplified}
+            initialKeyTerms={current.meReviewKeyTerms}
+          />
         </div>
 
-        <div className="mb-3 text-xs uppercase tracking-wide" style={{ color: "var(--fg-4)" }}>
-          Current plan — v{current.number}
-        </div>
-
-        <StageList stages={current.stages} />
-
-        {/* Key terms appear after the postmortem stage if a review has been run */}
-        <KeyTermsSection keyTerms={current.meReviewKeyTerms ?? []} />
-
-        <MEReviewPanel
-          experimentId={exp.id}
-          versionNumber={current.number}
-          initialReview={current.meReview ?? current.phdReview}
-          initialReviewSimplified={current.meReviewSimplified}
-          initialKeyTerms={current.meReviewKeyTerms}
-        />
-
-        <AssetsPane
-          experimentId={exp.id}
-          initialAssets={exp.assets ?? []}
-        />
-
-        <CommentsSection
-          experimentId={exp.id}
-          initialComments={exp.comments ?? []}
+        <RightRail
+          versions={
+            <VersionTimeline
+              experimentId={exp.id}
+              versions={exp.versions}
+              currentVersion={exp.currentVersion}
+            />
+          }
+          assets={
+            <AssetsPane
+              experimentId={exp.id}
+              initialAssets={exp.assets ?? []}
+              embedded
+            />
+          }
+          comments={
+            <CommentsSection
+              experimentId={exp.id}
+              initialComments={exp.comments ?? []}
+              embedded
+            />
+          }
         />
       </div>
-
-      <aside>
-        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide" style={{ color: "var(--fg-4)" }}>
-          Version history
-        </h2>
-        <VersionTimeline
-          experimentId={exp.id}
-          versions={exp.versions}
-          currentVersion={exp.currentVersion}
-        />
-      </aside>
     </div>
   );
 }

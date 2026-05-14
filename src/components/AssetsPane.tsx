@@ -6,9 +6,10 @@ import { Asset } from "@/lib/types";
 interface Props {
   experimentId: string;
   initialAssets: Asset[];
+  embedded?: boolean;
 }
 
-export default function AssetsPane({ experimentId, initialAssets }: Props) {
+export default function AssetsPane({ experimentId, initialAssets, embedded = false }: Props) {
   const [assets, setAssets] = useState<Asset[]>(initialAssets);
   const [adding, setAdding] = useState(false);
   const [label, setLabel] = useState("");
@@ -54,9 +55,21 @@ export default function AssetsPane({ experimentId, initialAssets }: Props) {
     }
   }
 
+  const wrapperClass = embedded
+    ? ""
+    : "mt-6 rounded-lg border";
+  const wrapperStyle = embedded
+    ? undefined
+    : { borderColor: "var(--border)", background: "var(--surface)" };
+  const headerClass = embedded
+    ? "flex items-center justify-between pb-2"
+    : "flex items-center justify-between border-b px-4 py-3";
+  const headerStyle = embedded ? undefined : { borderColor: "var(--border)" };
+  const bodyClass = embedded ? "" : "px-4 py-3";
+
   return (
-    <div className="mt-6 rounded-lg border" style={{ borderColor: "var(--border)", background: "var(--surface)" }}>
-      <div className="flex items-center justify-between border-b px-4 py-3" style={{ borderColor: "var(--border)" }}>
+    <div className={wrapperClass} style={wrapperStyle}>
+      <div className={headerClass} style={headerStyle}>
         <span className="text-sm font-semibold" style={{ color: "var(--fg-2)" }}>
           Linked Assets
         </span>
@@ -70,7 +83,7 @@ export default function AssetsPane({ experimentId, initialAssets }: Props) {
         )}
       </div>
 
-      <div className="px-4 py-3">
+      <div className={bodyClass}>
         {error && (
           <p className="mb-2 text-xs text-red-600">{error}</p>
         )}
