@@ -1,14 +1,25 @@
 import Link from "next/link";
-import { listConsultations } from "@/lib/consultation-storage";
-import { getConsultation } from "@/lib/consultation-storage";
+import { listConsultations, getConsultation } from "@/lib/consultation-storage";
+import ScopeTabs from "@/components/ScopeTabs";
+import { getCurrentUser, matchesScope, resolveScope } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
-export default async function ConsultationsPage() {
+export default async function ConsultationsPage({
+  searchParams,
+}: {
+  searchParams?: { scope?: string };
+}) {
+  const user = getCurrentUser()!;
+  const scope = resolveScope(searchParams?.scope);
   const metas = await listConsultations();
-  // Load message counts for each consultation.
+  const counts = {
+    mine: metas.filter((m) => matchesScope(m.ownerEmail, user, "mine")).length,
+    org: metas.filter((m) => matchesScope(m.ownerEmail, user, "org")).length,
+  };
+  const filteredMetas = metas.filter((m) => matchesScope(m.ownerEmail, user, scope));
   const consultations = await Promise.all(
-    metas.map(async (m) => {
+    filteredMetas.map(async (m) => {
       const c = await getConsultation(m.id);
       return { ...m, messageCount: c?.messages.length ?? 0 };
     }),
@@ -16,52 +27,66 @@ export default async function ConsultationsPage() {
 
   return (
     <div>
-      <div className="mb-6 flex items-baseline justify-between gap-4">
+      <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">M&amp;E Advisor</h1>
-          <p className="mt-1 text-sm text-slate-600">
+          <p className="mt-1 text-sm" style={{ color: "var(--fg-3)" }}>
             One-off methodology questions answered by an M&amp;E specialist. The advisor asks
             follow-up questions when it needs more context before giving advice.
           </p>
         </div>
-        <Link
-          href="/consultations/new"
-          className="shrink-0 rounded bg-accent px-3 py-2 text-sm font-medium text-white hover:bg-blue-700"
-        >
-          Ask a question
-        </Link>
+        <div className="flex items-center gap-2">
+          <ScopeTabs scope={scope} basePath="/consultations" user={user} counts={counts} />
+          <Link
+            href="/consultations/new"
+            className="rounded-xl px-3 py-2 text-sm font-medium text-white shadow-sm transition hover:opacity-90"
+            style={{ background: "linear-gradient(135deg, var(--accent), var(--accent-2))" }}
+          >
+            Ask a question
+          </Link>
+        </div>
       </div>
 
       {consultations.length === 0 ? (
-        <div className="rounded-lg border border-dashed border-slate-300 bg-white p-10 text-center">
-          <p className="text-slate-600">No consultations yet.</p>
+        <div
+          className="card flex flex-col items-center justify-center p-10 text-center"
+          style={{ borderStyle: "dashed" }}
+        >
+          <p style={{ color: "var(--fg-3)" }}>
+            {scope === "mine"
+              ? "You haven't asked anything yet."
+              : `Nothing from @${user.domain} yet.`}
+          </p>
           <Link
             href="/consultations/new"
-            className="mt-4 inline-block rounded bg-accent px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+            className="mt-4 inline-block rounded-xl px-4 py-2 text-sm font-medium text-white"
+            style={{ background: "linear-gradient(135deg, var(--accent), var(--accent-2))" }}
           >
             Ask your first question
           </Link>
         </div>
       ) : (
-        <ul className="grid gap-3 sm:grid-cols-2">
-          {consultations.map((c) => (
-            <li key={c.id}>
-              <Link
-                href={`/consultations/${c.id}`}
-                className="flex flex-col rounded-lg border border-slate-200 bg-white p-5 transition hover:border-slate-400 hover:shadow-sm"
-              >
-                <p className="font-medium leading-snug">{c.title}</p>
-                <div className="mt-3 flex items-center justify-between">
-                  <p className="text-xs text-slate-500">
-                    {new Date(c.updatedAt).toLocaleDateString()}
-                    {" · "}
-                    {Math.floor(c.messageCount / 2)} exchange{Math.floor(c.messageCount / 2) !== 1 ? "s" : ""}
-                  </p>
-                  <span className="text-xs font-medium text-accent">Continue →</span>
-                </div>
-              </Link>
-            </li>
-          ))}
+        <ul className="grid gap-4 sm:grid-cols-2">
+          {consultations.map((c) => {
+            const mine = c.ownerEmail === user.email;
+            return (
+              <li key={c.id}>
+                <Link
+                  href={`/consultations/${c.id}`}
+                  className="card card-hover flex h-full flex-col p-5"
+                >
+                  <p className="font-medium leading-snug" style={{ color: "var(--fg)" }}>{c.title}</p>
+                  <div className="mt-auto flex items-center justify-between pt-3 text-xs" style={{ color: "var(--fg-4)" }}>
+                    <span className="truncate">
+                      {c.ownerEmail ? (mine ? "You" : c.ownerEmail) : "Unassigned"} ·{" "}
+                      {Math.floor(c.messageCount / 2)} exchange{Math.floor(c.messageCount / 2) !== 1 ? "s" : ""}
+                    </span>
+                    <span className="whitespace-nowrap">{new Date(c.updatedAt).toLocaleDateString()}</span>
+                  </div>
+                </Link>
+              </li>
+            );
+          })}
         </ul>
       )}
     </div>

@@ -7,6 +7,8 @@ import StatTile from "@/components/ui/StatTile";
 import ExperimentGrid, { DashboardExperiment } from "@/components/dashboard/ExperimentGrid";
 import RecentActivity, { ActivityItem } from "@/components/dashboard/RecentActivity";
 import ToolsRail from "@/components/dashboard/ToolsRail";
+import ScopeTabs from "@/components/ScopeTabs";
+import { getCurrentUser, matchesScope, resolveScope } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -39,12 +41,28 @@ async function buildDashboardExperiments(): Promise<DashboardExperiment[]> {
   return enriched;
 }
 
-export default async function DashboardPage() {
-  const [experiments, consultations, docReviews] = await Promise.all([
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams?: { scope?: string };
+}) {
+  const user = getCurrentUser()!;
+  const scope = resolveScope(searchParams?.scope);
+
+  const [allExperiments, allConsultations, allDocReviews] = await Promise.all([
     buildDashboardExperiments(),
     listConsultations(),
     listDocReviews(),
   ]);
+
+  const counts = {
+    mine: allExperiments.filter((e) => matchesScope(e.ownerEmail, user, "mine")).length,
+    org: allExperiments.filter((e) => matchesScope(e.ownerEmail, user, "org")).length,
+  };
+  const experiments = allExperiments.filter((e) => matchesScope(e.ownerEmail, user, scope));
+
+  const consultations = allConsultations.filter((c) => matchesScope(c.ownerEmail, user, scope));
+  const docReviews = allDocReviews.filter((r) => matchesScope(r.ownerEmail, user, scope));
 
   const avgProgress = experiments.length === 0
     ? 0
@@ -76,6 +94,9 @@ export default async function DashboardPage() {
     .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
     .slice(0, 6);
 
+  const firstName = user.email.split("@")[0].split(/[._]/)[0];
+  const heroName = firstName.charAt(0).toUpperCase() + firstName.slice(1);
+
   return (
     <div className="space-y-8">
       {/* Hero */}
@@ -83,10 +104,10 @@ export default async function DashboardPage() {
         <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
           <div className="max-w-xl">
             <p className="text-xs font-medium uppercase tracking-wider" style={{ color: "var(--hero-muted)" }}>
-              Active workspace
+              Active workspace · @{user.domain}
             </p>
             <h1 className="mt-1 text-2xl md:text-3xl font-semibold tracking-tight">
-              Welcome back, Researcher
+              Welcome back, {heroName}
             </h1>
             <p className="mt-2 text-sm md:text-base" style={{ color: "var(--hero-muted)" }}>
               Plan smarter. Test rigorously. Learn continuously — every version of every plan grounded in a reason.
@@ -160,11 +181,14 @@ export default async function DashboardPage() {
       {/* Experiments + tools split */}
       <section className="grid gap-6 lg:grid-cols-[2fr_1fr]">
         <div>
-          <div className="mb-3 flex items-baseline justify-between">
-            <h2 className="text-base font-semibold tracking-tight" style={{ color: "var(--fg)" }}>
-              Your experiments
-            </h2>
-            <Link href="/experiments/new" className="text-xs font-medium" style={{ color: "var(--accent)" }}>
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <h2 className="text-base font-semibold tracking-tight" style={{ color: "var(--fg)" }}>
+                Your experiments
+              </h2>
+              <ScopeTabs scope={scope} basePath="/" user={user} counts={counts} />
+            </div>
+            <Link href="/experiments" className="text-xs font-medium" style={{ color: "var(--accent)" }}>
               View all →
             </Link>
           </div>
@@ -173,7 +197,11 @@ export default async function DashboardPage() {
               className="card flex flex-col items-center justify-center p-12 text-center"
               style={{ borderStyle: "dashed" }}
             >
-              <p style={{ color: "var(--fg-3)" }}>No experiments yet.</p>
+              <p style={{ color: "var(--fg-3)" }}>
+                {scope === "mine"
+                  ? "You haven't created any experiments yet."
+                  : `No experiments in @${user.domain} yet.`}
+              </p>
               <Link
                 href="/experiments/new"
                 className="mt-4 inline-block rounded-xl px-4 py-2 text-sm font-medium text-white"
@@ -183,7 +211,7 @@ export default async function DashboardPage() {
               </Link>
             </div>
           ) : (
-            <ExperimentGrid experiments={experiments} />
+            <ExperimentGrid experiments={experiments} currentUserEmail={user.email} />
           )}
         </div>
 

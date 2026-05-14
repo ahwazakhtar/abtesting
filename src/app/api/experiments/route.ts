@@ -4,6 +4,7 @@ import { listExperiments, createExperiment } from "@/lib/storage";
 import { getClient, MODEL } from "@/lib/openai";
 import { initialDraftPrompt, normalizeStages } from "@/lib/prompts";
 import { Version } from "@/lib/types";
+import { getCurrentUser } from "@/lib/auth";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -53,8 +54,9 @@ export async function POST(req: Request) {
     stages: normalizeStages(parsed),
   };
 
+  const currentUser = getCurrentUser();
   const meta = await createExperiment(
-    { id, title, description },
+    { id, title, description, ownerEmail: currentUser?.email },
     v1,
   );
   return NextResponse.json({ experiment: meta });

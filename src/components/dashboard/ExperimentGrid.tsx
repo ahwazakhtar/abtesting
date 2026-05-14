@@ -12,6 +12,7 @@ export interface DashboardExperiment extends ExperimentMeta {
 
 interface Props {
   experiments: DashboardExperiment[];
+  currentUserEmail?: string;
 }
 
 const STATUS_TONE: Record<DashboardExperiment["status"], "accent" | "success" | "warning" | "info"> = {
@@ -21,55 +22,69 @@ const STATUS_TONE: Record<DashboardExperiment["status"], "accent" | "success" | 
   "In progress": "success",
 };
 
-export default function ExperimentGrid({ experiments }: Props) {
+export default function ExperimentGrid({ experiments, currentUserEmail }: Props) {
   return (
     <ul className="grid gap-4 sm:grid-cols-2">
-      {experiments.map((e) => (
-        <li key={e.id}>
-          <Link
-            href={`/experiments/${e.id}`}
-            className="card card-hover block h-full p-5"
-          >
-            <div className="flex items-start gap-4">
-              <span
-                aria-hidden
-                className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl text-white"
-                style={{ background: "linear-gradient(135deg, var(--accent), var(--accent-2))" }}
-              >
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} className="h-6 w-6">
-                  <circle cx={12} cy={12} r={3} />
-                  <circle cx={12} cy={12} r={7} strokeOpacity={0.5} />
-                  <circle cx={12} cy={12} r={10} strokeOpacity={0.25} />
-                </svg>
-              </span>
-              <div className="min-w-0 flex-1">
-                <div className="flex items-start justify-between gap-2">
-                  <h3 className="font-semibold leading-snug" style={{ color: "var(--fg)" }}>{e.title}</h3>
-                  <Pill tone={STATUS_TONE[e.status]} dot>{e.status}</Pill>
+      {experiments.map((e) => {
+        const mine = currentUserEmail && e.ownerEmail === currentUserEmail;
+        return (
+          <li key={e.id}>
+            <Link
+              href={`/experiments/${e.id}`}
+              className="card card-hover block h-full p-5"
+            >
+              <div className="flex items-start gap-4">
+                <span
+                  aria-hidden
+                  className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl text-white"
+                  style={{ background: "linear-gradient(135deg, var(--accent), var(--accent-2))" }}
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} className="h-6 w-6">
+                    <circle cx={12} cy={12} r={3} />
+                    <circle cx={12} cy={12} r={7} strokeOpacity={0.5} />
+                    <circle cx={12} cy={12} r={10} strokeOpacity={0.25} />
+                  </svg>
+                </span>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-start justify-between gap-2">
+                    <h3 className="font-semibold leading-snug" style={{ color: "var(--fg)" }}>{e.title}</h3>
+                    <Pill tone={STATUS_TONE[e.status]} dot>{e.status}</Pill>
+                  </div>
+                  {e.description && (
+                    <p className="mt-1 line-clamp-2 text-sm" style={{ color: "var(--fg-3)" }}>
+                      {e.description}
+                    </p>
+                  )}
                 </div>
-                {e.description && (
-                  <p className="mt-1 line-clamp-2 text-sm" style={{ color: "var(--fg-3)" }}>
-                    {e.description}
-                  </p>
-                )}
               </div>
-            </div>
 
-            <div className="mt-4">
-              <div className="flex items-center justify-between text-xs" style={{ color: "var(--fg-4)" }}>
-                <span>Plan completeness</span>
-                <span>{e.progress}%</span>
+              <div className="mt-4">
+                <div className="flex items-center justify-between text-xs" style={{ color: "var(--fg-4)" }}>
+                  <span>Plan completeness</span>
+                  <span>{e.progress}%</span>
+                </div>
+                <ProgressBar value={e.progress} className="mt-1" />
               </div>
-              <ProgressBar value={e.progress} className="mt-1" />
-            </div>
 
-            <div className="mt-4 flex items-center justify-between text-xs" style={{ color: "var(--fg-4)" }}>
-              <span>v{e.currentVersion} · {e.filledStages}/{e.totalStages} stages</span>
-              <span>Updated {new Date(e.updatedAt).toLocaleDateString()}</span>
-            </div>
-          </Link>
-        </li>
-      ))}
+              <div className="mt-4 flex items-center justify-between gap-2 text-xs" style={{ color: "var(--fg-4)" }}>
+                <span className="truncate">
+                  {e.ownerEmail ? (
+                    <>
+                      <span style={mine ? { color: "var(--accent)" } : undefined}>
+                        {mine ? "You" : e.ownerEmail}
+                      </span>
+                      <span> · v{e.currentVersion} · {e.filledStages}/{e.totalStages} stages</span>
+                    </>
+                  ) : (
+                    <>Unassigned · v{e.currentVersion}</>
+                  )}
+                </span>
+                <span className="whitespace-nowrap">Updated {new Date(e.updatedAt).toLocaleDateString()}</span>
+              </div>
+            </Link>
+          </li>
+        );
+      })}
 
       <li>
         <Link

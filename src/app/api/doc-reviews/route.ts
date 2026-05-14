@@ -4,6 +4,7 @@ import { getClient } from "@/lib/openai";
 import { docReviewPrompt, parseReviewSections } from "@/lib/doc-review-prompts";
 import { createDocReview, listDocReviews } from "@/lib/doc-review-storage";
 import { DocReview } from "@/lib/types";
+import { getCurrentUser } from "@/lib/auth";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -74,6 +75,7 @@ export async function POST(req: Request) {
   const { technical, simplified, keyTerms } = parseReviewSections(rawReview);
 
   const now = new Date().toISOString();
+  const currentUser = getCurrentUser();
   const docReview: DocReview = {
     id: nanoid(10),
     docUrl,
@@ -84,6 +86,7 @@ export async function POST(req: Request) {
     reviewKeyTerms: keyTerms,
     createdAt: now,
     updatedAt: now,
+    ownerEmail: currentUser?.email,
   };
 
   const meta = await createDocReview(docReview);

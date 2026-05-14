@@ -4,6 +4,7 @@ import { getClient, MODEL } from "@/lib/openai";
 import { buildMessages } from "@/lib/advisor-prompts";
 import { createConsultation, listConsultations } from "@/lib/consultation-storage";
 import { Consultation, ConsultationMessage } from "@/lib/types";
+import { getCurrentUser } from "@/lib/auth";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -36,11 +37,13 @@ export async function POST(req: Request) {
 
   const assistantMsg: ConsultationMessage = { id: nanoid(), role: "assistant", content: reply };
   const now = new Date().toISOString();
+  const user = getCurrentUser();
   const consultation: Consultation = {
     id: nanoid(10),
     title: question.slice(0, 80) + (question.length > 80 ? "…" : ""),
     createdAt: now,
     updatedAt: now,
+    ownerEmail: user?.email,
     messages: [userMsg, assistantMsg],
   };
 
