@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ReactNode } from "react";
+import { AuthedUser } from "@/lib/auth";
+import SignOutButton from "./SignOutButton";
 
 interface SidebarItem {
   href: string;
@@ -23,9 +25,9 @@ const ITEMS: SidebarItem[] = [
     ),
   },
   {
-    href: "/",
+    href: "/experiments",
     label: "Experiments",
-    match: (p) => p.startsWith("/experiments"),
+    match: (p) => p === "/experiments" || p.startsWith("/experiments/"),
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className="h-4 w-4">
         <path strokeLinecap="round" strokeLinejoin="round" d="M9 3v6L4 19a2 2 0 0 0 1.8 2.9h12.4A2 2 0 0 0 20 19L15 9V3M9 3h6M9 14h6" />
@@ -64,15 +66,16 @@ const ITEMS: SidebarItem[] = [
   },
 ];
 
-export default function Sidebar() {
+export default function Sidebar({ user }: { user: AuthedUser }) {
   const pathname = usePathname() ?? "/";
+  const initial = user.email.charAt(0).toUpperCase();
 
   return (
     <aside
       className="hidden lg:flex fixed inset-y-0 left-0 w-60 flex-col border-r"
       style={{ background: "var(--surface)", borderColor: "var(--border)" }}
     >
-      <div className="flex h-16 items-center gap-2 px-5">
+      <Link href="/" className="flex h-16 items-center gap-2 px-5">
         <span
           className="flex h-8 w-8 items-center justify-center rounded-xl text-white"
           style={{ background: "linear-gradient(135deg, var(--accent), var(--accent-2))" }}
@@ -87,7 +90,7 @@ export default function Sidebar() {
             Playground
           </span>
         </span>
-      </div>
+      </Link>
 
       <nav className="flex-1 px-3 py-2">
         <ul className="space-y-1">
@@ -123,12 +126,15 @@ export default function Sidebar() {
           className="flex h-9 w-9 items-center justify-center rounded-full text-sm font-semibold text-white"
           style={{ background: "linear-gradient(135deg, var(--accent), var(--accent-2))" }}
         >
-          R
+          {initial}
         </span>
-        <div className="min-w-0">
-          <p className="truncate text-sm font-semibold" style={{ color: "var(--fg)" }}>Researcher</p>
-          <p className="truncate text-xs" style={{ color: "var(--fg-4)" }}>M&amp;E team</p>
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm font-semibold" style={{ color: "var(--fg)" }} title={user.email}>
+            {user.email.split("@")[0]}
+          </p>
+          <p className="truncate text-xs" style={{ color: "var(--fg-4)" }}>@{user.domain}</p>
         </div>
+        <SignOutButton />
       </div>
     </aside>
   );

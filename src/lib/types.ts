@@ -121,6 +121,8 @@ export interface ExperimentMeta {
   createdAt: string;
   updatedAt: string;
   currentVersion: number;
+  /** Email of the person who created the experiment. Optional for legacy data. */
+  ownerEmail?: string;
   assets?: Asset[];
   comments?: Comment[];
 }
@@ -143,6 +145,7 @@ export interface ConsultationMeta {
   title: string; // auto-derived from first user message
   createdAt: string;
   updatedAt: string;
+  ownerEmail?: string;
 }
 
 export interface Consultation extends ConsultationMeta {
@@ -165,6 +168,7 @@ export interface DocReviewMeta {
   docTitle: string;
   createdAt: string;
   updatedAt: string;
+  ownerEmail?: string;
 }
 
 export interface DocReview extends DocReviewMeta {

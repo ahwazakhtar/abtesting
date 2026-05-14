@@ -124,6 +124,7 @@ export async function appendVersion(id: string, version: Version): Promise<Exper
     createdAt: exp.createdAt,
     updatedAt: new Date().toISOString(),
     currentVersion: version.number,
+    ownerEmail: exp.ownerEmail,
   };
   await writeJson(metaFile(id), newMeta);
   const idx = await listExperiments();
