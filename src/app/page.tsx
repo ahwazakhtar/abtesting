@@ -2,9 +2,9 @@ import Link from "next/link";
 import { getExperiment, listExperiments } from "@/lib/storage";
 import { listConsultations } from "@/lib/consultation-storage";
 import { listDocReviews } from "@/lib/doc-review-storage";
-import { STAGE_ORDER } from "@/lib/types";
 import StatTile from "@/components/ui/StatTile";
 import ExperimentGrid, { DashboardExperiment } from "@/components/dashboard/ExperimentGrid";
+import { computeHealth } from "@/lib/experiment-health";
 import RecentActivity, { ActivityItem } from "@/components/dashboard/RecentActivity";
 import ToolsRail from "@/components/dashboard/ToolsRail";
 import ScopeTabs from "@/components/ScopeTabs";
@@ -18,11 +18,8 @@ async function buildDashboardExperiments(): Promise<DashboardExperiment[]> {
     metas.map(async (m): Promise<DashboardExperiment> => {
       const full = await getExperiment(m.id);
       const current = full?.versions[full.versions.length - 1];
-      const filled = current
-        ? current.stages.filter((s) => (s.content ?? "").trim().length > 0).length
-        : 0;
-      const total = STAGE_ORDER.length;
-      const progress = Math.round((filled / total) * 100);
+      const health = computeHealth(current);
+      const progress = Math.round((health.filledStages / health.totalStages) * 100);
 
       let status: DashboardExperiment["status"] = "Drafting";
       if (current?.meReview || current?.phdReview) status = "Reviewing";
@@ -33,8 +30,7 @@ async function buildDashboardExperiments(): Promise<DashboardExperiment[]> {
         ...m,
         progress,
         status,
-        filledStages: filled,
-        totalStages: total,
+        health,
       };
     }),
   );

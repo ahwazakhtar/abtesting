@@ -55,12 +55,12 @@ const ITEMS: SidebarItem[] = [
     ),
   },
   {
-    href: "/experiments/digital-coach-promotion/analytics",
-    label: "Analytics",
-    match: (p) => p.endsWith("/analytics"),
+    href: "/learnings",
+    label: "Org learnings",
+    match: (p) => p.startsWith("/learnings"),
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className="h-4 w-4">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M3 3v18h18 M7 15l4-4 4 4 5-7" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M22 10 12 4 2 10l10 6 10-6z M6 12v5a6 6 0 0 0 12 0v-5 M22 10v6" />
       </svg>
     ),
   },
